@@ -1,50 +1,7 @@
-<!doctype html>
-<html lang="en-US">
+<html>
 
 <head>
-  <meta charset="utf-8" />
-  <title>bikeroute_wasm</title>
+  <link data-trunk rel="scss" href="src/styles/index.scss" />
 </head>
-
-<body>
-  <script type="module">
-    import init, { greet } from "./pkg/bikeroute_wasm.js";
-    init().then(() => {
-      greet("WebAssembly");
-    });
-
-    let id;
-    let target;
-    let options;
-
-    function success(pos) {
-      const crd = pos.coords;
-
-      if (target.latitude === crd.latitude && target.longitude === crd.longitude) {
-        console.log("Congratulations, you reached the target");
-        navigator.geolocation.clearWatch(id);
-      }
-      console.log(`${crd.latitude} ${crd.longitude}`);
-    }
-
-    function error(err) {
-      console.error(`ERROR(${err.code}): ${err.message}`);
-    }
-
-    target = {
-      latitude: 0,
-      longitude: 0,
-    };
-
-    options = {
-      enableHighAccuracy: false,
-      timeout: 5000,
-      maximumAge: 0,
-    };
-
-    id = navigator.geolocation.watchPosition(success, error, options);
-
-  </script>
-</body>
 
 </html>
