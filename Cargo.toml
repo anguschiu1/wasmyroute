@@ -10,4 +10,5 @@ edition = "2021"
 [dependencies]
 console_log = { version = "1.0.0", features = ["color"] }
 log = "0.4.20"
+seed = "0.10.0"
 web-sys = "0.3.65"

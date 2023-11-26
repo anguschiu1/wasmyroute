@@ -9,6 +9,7 @@ In future, users can create an account and login to view their saved routes. Use
 The project is a WebAssembly applicaton written in Rust. Install `wasmybikeroute` by:
 
 ```bash
+rustup target add wasm32-unknown-unknown
 cargo install wasm-pack
 cargo new --lib wasmybikeroute
 ```
@@ -22,6 +23,7 @@ cargo install --locked trunk
 cargo install wasm-bindgen-cli
 cargo add web-sys
 cargo add log
+cargo add seed
 ```
 
 To deploy this project
