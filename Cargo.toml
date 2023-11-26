@@ -1,13 +1,13 @@
 [package]
-name = "bikeroute-wasm"
+name = "wasmybikeroute"
 version = "0.1.0"
 authors = ["Angus Chiu"]
 description = "Offline Turn-based Navigation for bike routes"
 license = "MIT Or Apache-2.0"
-repository = "https://github.com/anguschiu/bikeroute-wasm"
+repository = "https://github.com/anguschiu1/wasmybikeroute.git"
 edition = "2021"
 
 [dependencies]
-web-sys = { version = "0.3.65", features = ['console'] }
 console_log = { version = "1.0.0", features = ["color"] }
 log = "0.4.20"
+web-sys = "0.3.65"

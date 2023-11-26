@@ -1,0 +1,51 @@
+# WASMyBikeroute
+
+WASMyBikeroute is a web application that allows users to create, navigate and record their favorite bike routes. The application is designed to operate on web browsers and once it is loaded, can still be used to track and navigate even the device is not connected to internet. The application can import tracks and export routes in GPX format.
+
+In future, users can create an account and login to view their saved routes. Users can also view other users routes and save them to their account.
+
+## Installation
+
+The project is a WebAssembly applicaton written in Rust. Install `wasmybikeroute` by:
+
+```bash
+cargo install wasm-pack
+cargo new --lib wasmybikeroute
+```
+
+## Deployment
+
+Install `trunk` and other required dependencies
+
+```bash
+cargo install --locked trunk
+cargo install wasm-bindgen-cli
+cargo add web-sys
+cargo add log
+```
+
+To deploy this project
+
+```bash
+trunk serve
+```
+
+## Acknowledgements
+
+TBD
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+## Running Tests
+
+To run tests, run the following command
+
+```bash
+  cargo test
+```
+
+## Tech Stack
+
+**Client:** WebAssembly, Rust
