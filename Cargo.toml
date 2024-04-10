@@ -1,8 +1,8 @@
 [package]
-name = "wasmybikeroute"
+name = "wasmyroute"
 version = "0.1.0"
 authors = ["Angus Chiu"]
-description = "Offline Turn-based Navigation for bike routes"
+description = "Offline Turn-based Navigation for trail and cycling routes"
 license = "MIT Or Apache-2.0"
 repository = "https://github.com/anguschiu1/wasmybikeroute.git"
 edition = "2021"
