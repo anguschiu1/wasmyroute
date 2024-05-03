@@ -572,6 +572,7 @@ dependencies = [
  "console_log",
  "leaflet",
  "log",
+ "rand",
  "seed",
  "web-sys",
 ]

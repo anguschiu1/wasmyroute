@@ -11,5 +11,11 @@ edition = "2021"
 console_log = { version = "1.0.0", features = ["color"] }
 log = "0.4.20"
 seed = "0.10.0"
-web-sys = "0.3.65"
+web-sys = { version = "0.3.65", features = [
+  "Coordinates",
+  "Position",
+  "PositionError",
+  "Geolocation",
+] }
 leaflet = "0.4"
+rand = "0.8.5"
