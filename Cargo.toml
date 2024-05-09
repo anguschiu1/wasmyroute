@@ -16,6 +16,7 @@ web-sys = { version = "0.3.65", features = [
   "Position",
   "PositionError",
   "Geolocation",
+  "PositionOptions",
 ] }
 leaflet = "0.4"
 rand = "0.8.5"
