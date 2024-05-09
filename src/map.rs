@@ -23,6 +23,7 @@ pub fn init() -> Model {
 
     Model {
         map: Some(map),
+        zoomlevel: 5,
         ..Default::default() //initialize counter
     }
 }
@@ -51,9 +52,7 @@ fn add_polyline(map: &Map) {
 
 pub fn pan_to_position(model: &Model, position: Coord) {
     if let Some(map) = &model.map {
-        // Assuming you want to keep the current zoom level or use a default one.
-        // If the `get_zoom` method is not available, you might need to store the zoom level in your model.
-        let zoom = map.get_zoom(); // Replace 10.0 with your default or current zoom level
+        let zoom = model.zoomlevel.into();
         map.set_view(&LatLng::new(position.lat, position.lon), zoom);
     }
 }

@@ -115,8 +115,14 @@ fn init(_: Url, orders: &mut impl Orders<Msg>) -> Model {
 ///   performing additional tasks that involve message passing or command execution.
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::Increment => model.zoomlevel += 1,
-        Msg::Decrement => model.zoomlevel -= 1,
+        Msg::Increment => {
+            model.zoom_in();
+            update_position(model.position, model, orders);
+        }
+        Msg::Decrement => {
+            model.zoom_out();
+            update_position(model.position, model, orders);
+        }
         Msg::Position(position) => {
             update_position(position, model, orders);
         }
@@ -141,9 +147,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 fn view(model: &Model) -> Node<Msg> {
     div![
         "Zoom level: ",
-        button!["+", ev(Ev::Click, |_| Msg::Increment),],
-        label![model.zoomlevel],
         button!["-", ev(Ev::Click, |_| Msg::Decrement),],
+        label![format!("{}", model.zoomlevel)],
+        button!["+", ev(Ev::Click, |_| Msg::Increment),],
         label![format!(
             "lat:{}, lon:{}",
             model.position.lat, model.position.lon
