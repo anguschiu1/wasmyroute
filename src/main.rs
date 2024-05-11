@@ -77,7 +77,7 @@ fn init_geolocation(orders: &mut impl Orders<Msg>) {
 
 fn update_position(position: Coord, model: &mut model::Model, _orders: &mut impl Orders<Msg>) {
     info!("update position...");
-    map::pan_to_position(model, position.clone());
+    map::pan_to_position(model, position);
     model.position = position;
 }
 

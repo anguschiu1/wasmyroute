@@ -4,27 +4,43 @@ use web_sys::{js_sys::Array, wasm_bindgen::JsValue};
 
 use crate::{Coord, Model};
 
+/// Initializes the map model with a random location and default settings.
+///
+/// This function creates a new map instance with default options, sets a random
+/// starting location if geolocation is not available, adds a tile layer and a polyline
+/// to the map, and returns a `Model` instance containing the map and its settings.
+///
+/// # Returns
+/// A `Model` instance containing:
+/// - An `Option<Map>` holding the initialized map.
+/// - The zoom level set to 5.
+/// - The randomly generated starting position.
 pub fn init() -> Model {
+    // Set default map options.
     let options = MapOptions::default();
+    // Create a new map instance with the specified element id and options.
     let map = Map::new("map", &options);
-    // Create a random start location, so we get to init the map even if geolocation isn't available.
+
+    // Generate a random start location to initialize the map if geolocation isn't available.
     let mut rng = thread_rng();
     let position = Coord {
         lat: rng.gen_range(-90.0..90.0),
         lon: rng.gen_range(-180.0..180.0),
     };
 
-    map.set_view(&LatLng::new(position.lat, position.lon), 10.0); // set default &Map for tiles and polylines
+    // Set the map view to the random position with a default zoom level.
+    map.set_view(&LatLng::new(position.lat, position.lon), 10.0);
 
-    // map.set_view(&LatLng::new(51.5160977, -0.1091519), 10.0); // set default &Map for tiles and polylines
-
+    // Add a tile layer and a polyline to the map.
     add_tile_layer(&map);
     add_polyline(&map);
 
+    // Return a Model instance with the map, zoom level, and position.
     Model {
         map: Some(map),
-        zoomlevel: 5,
-        ..Default::default() //initialize counter
+        zoomlevel: 10,
+        position,
+        // ..Default::default() // Initialize counter if needed.
     }
 }
 
