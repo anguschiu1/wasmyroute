@@ -69,6 +69,6 @@ fn add_polyline(map: &Map) {
 pub fn pan_to_position(model: &Model, position: Coord) {
     if let Some(map) = &model.map {
         let zoom = model.zoomlevel.into();
-        map.set_view(&LatLng::new(position.lat, position.lon), zoom);
+        map.set_view(&position.into(), zoom); // Pass a reference to LatLng
     }
 }
