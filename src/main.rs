@@ -1,6 +1,7 @@
 pub mod geo;
 pub mod map;
 pub mod model;
+pub mod route;
 
 use geo::Coord;
 use log::{info, Level};
@@ -86,7 +87,6 @@ enum Msg {
     Increment, // Increment counter
     Decrement, // Decrement counter
     Position(Coord),
-    GpxFileUpload,
     GpxFileChanged(FileList),
 }
 
@@ -128,15 +128,14 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Position(position) => {
             update_position(position, model, orders);
         }
-        Msg::GpxFileUpload => {
-            info!("GpxFileUpload");
-        }
         Msg::GpxFileChanged(files) => {
             info!("GpxFileChanged");
             if let Some(file) = files.get(0) {
                 // Process the file here
                 info!("File name: {}", file.name());
                 info!("File size: {}", file.size());
+
+                route::parse_gpx_file(file);
             }
         }
     }
@@ -177,20 +176,17 @@ fn view_zoom_action(model: &Model) -> Node<Msg> {
     ]
 }
 fn view_file_input() -> Node<Msg> {
-    div![
-        input![
-            attrs! {At::Type => "file", At::Accept => ".gpx"},
-            ev(Ev::Change, |event| {
-                // Extract files from the event target
-                let input = event
-                    .target()
-                    .unwrap()
-                    .dyn_into::<web_sys::HtmlInputElement>()
-                    .unwrap();
-                let files = input.files().unwrap();
-                Msg::GpxFileChanged(files)
-            }),
-        ],
-        button!["Upload", ev(Ev::Click, |_| Msg::GpxFileUpload),],
-    ]
+    div![input![
+        attrs! {At::Type => "file", At::Accept => ".gpx"},
+        ev(Ev::Change, |event| {
+            // Extract files from the event target
+            let input = event
+                .target()
+                .unwrap()
+                .dyn_into::<web_sys::HtmlInputElement>()
+                .unwrap();
+            let files = input.files().unwrap();
+            Msg::GpxFileChanged(files)
+        }),
+    ],]
 }
