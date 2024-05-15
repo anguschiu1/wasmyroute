@@ -6,7 +6,7 @@ use geo::Coord;
 use log::{info, Level};
 use model::Model;
 use seed::{prelude::*, *};
-use web_sys::{Coordinates, Geolocation, Position, PositionError, PositionOptions};
+use web_sys::{Coordinates, FileList, Geolocation, Position, PositionError, PositionOptions};
 
 fn main() {
     let _ = console_log::init_with_level(Level::Info);
@@ -86,6 +86,8 @@ enum Msg {
     Increment, // Increment counter
     Decrement, // Decrement counter
     Position(Coord),
+    GpxFileUpload,
+    GpxFileChanged(FileList),
 }
 
 /// Initializes the application state and geolocation.
@@ -126,6 +128,17 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::Position(position) => {
             update_position(position, model, orders);
         }
+        Msg::GpxFileUpload => {
+            info!("GpxFileUpload");
+        }
+        Msg::GpxFileChanged(files) => {
+            info!("GpxFileChanged");
+            if let Some(file) = files.get(0) {
+                // Process the file here
+                info!("File name: {}", file.name());
+                info!("File size: {}", file.size());
+            }
+        }
     }
 }
 
@@ -144,15 +157,40 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 /// is used by the Seed framework to render the view in the browser. The `Node<Msg>` type is a virtual
 /// DOM node that encapsulates the elements and event listeners, facilitating efficient updates to the
 /// real DOM in response to state changes.
-fn view(model: &Model) -> Node<Msg> {
+fn view(model: &Model) -> Vec<Node<Msg>> {
+    vec![
+        view_zoom_action(model),
+        view_file_input(),
+        div![label![format!(
+            "lat:{}, lon:{}",
+            model.position.lat, model.position.lon
+        )]],
+    ]
+}
+
+fn view_zoom_action(model: &Model) -> Node<Msg> {
     div![
         "Zoom level: ",
         button!["-", ev(Ev::Click, |_| Msg::Decrement),],
         label![format!("{}", model.zoomlevel)],
         button!["+", ev(Ev::Click, |_| Msg::Increment),],
-        label![format!(
-            "lat:{}, lon:{}",
-            model.position.lat, model.position.lon
-        )]
+    ]
+}
+fn view_file_input() -> Node<Msg> {
+    div![
+        input![
+            attrs! {At::Type => "file", At::Accept => ".gpx"},
+            ev(Ev::Change, |event| {
+                // Extract files from the event target
+                let input = event
+                    .target()
+                    .unwrap()
+                    .dyn_into::<web_sys::HtmlInputElement>()
+                    .unwrap();
+                let files = input.files().unwrap();
+                Msg::GpxFileChanged(files)
+            }),
+        ],
+        button!["Upload", ev(Ev::Click, |_| Msg::GpxFileUpload),],
     ]
 }
