@@ -131,11 +131,9 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::GpxFileChanged(files) => {
             info!("GpxFileChanged");
             if let Some(file) = files.get(0) {
-                // Process the file here
                 info!("File name: {}", file.name());
                 info!("File size: {}", file.size());
-
-                route::parse_gpx_file(file);
+                let _gpx = route::read_gpx_file(file);
             }
         }
     }
@@ -179,14 +177,15 @@ fn view_file_input() -> Node<Msg> {
     div![input![
         attrs! {At::Type => "file", At::Accept => ".gpx"},
         ev(Ev::Change, |event| {
-            // Extract files from the event target
-            let input = event
-                .target()
-                .unwrap()
-                .dyn_into::<web_sys::HtmlInputElement>()
-                .unwrap();
-            let files = input.files().unwrap();
-            Msg::GpxFileChanged(files)
+            Msg::GpxFileChanged(
+                event
+                    .target()
+                    .unwrap()
+                    .dyn_into::<web_sys::HtmlInputElement>()
+                    .unwrap()
+                    .files()
+                    .unwrap(),
+            )
         }),
     ],]
 }

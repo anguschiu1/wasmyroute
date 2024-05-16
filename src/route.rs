@@ -17,7 +17,7 @@ use web_sys::{
     Event, File, FileReader,
 };
 
-pub fn parse_gpx_file(file: File) {
+pub fn read_gpx_file(file: File) {
     let file_reader = match FileReader::new() {
         Ok(file_reader) => Rc::new(RefCell::new(file_reader)),
         Err(e) => {
@@ -76,18 +76,38 @@ fn parse_gpx(text: String) {
             info!("Successfully parsed GPX data.");
             // Here you can work with the `gpx` variable, which is of type `Gpx`
             // For example, accessing waypoints, tracks, etc.
-            info!(
-                "Successfully parsed GPX data.\nTracks: {:?}, \nWaypoints: {:?}, \nRoutes: {:?}, \nVersion: {:?}, \nCreator: {:?} \nMetadata: {:?} \n",
-                gpx.tracks.len(),
-                gpx.waypoints.len(),
-                gpx.routes.len(),
-                gpx.version,
-                gpx.creator.unwrap(),
-                gpx.metadata.unwrap(),
-            );
+            gpx.tracks.iter().for_each(|track| {
+                info!(
+                    "Track name: {:?}",
+                    track.name.as_ref().unwrap_or(&"N/A".to_string())
+                );
+                info!(
+                    "Track type: {:?}",
+                    track.type_.as_ref().unwrap_or(&"N/A".to_string())
+                );
+                info!("Number of track segment: {:?}", track.segments.len());
+                track.segments.iter().for_each(|segment| {
+                    info!("Number of point in tihs : {:?}", segment.points.len());
+                    // segment.points.iter().for_each(|point| {
+                    //     info!(
+                    //         "Point lat: {:?}, lon: {:?}",
+                    //         point.point().x(),
+                    //         point.point().y()
+                    //     );
+                    //     info!("Point elevation: {:?}", point.elevation);
+                    // });
+                });
+            });
         }
         Err(e) => {
             error!("Failed to parse GPX data: {:?}", e);
         }
+    }
+}
+
+mod tests {
+    use super::*;
+    fn simulate_gpx_parsing(text: &str) {
+        parse_gpx(text.to_string());
     }
 }
