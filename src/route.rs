@@ -8,6 +8,7 @@
 // Create a Leaflet polyline or layer group with these points
 // Add the polyline or layer group to the map
 
+use gpx::read;
 use std::{cell::RefCell, rc::Rc};
 
 use log::{error, info};
@@ -44,6 +45,7 @@ pub fn parse_gpx_file(file: File) {
                 if let Some(text) = result.as_string() {
                     info!("File content: {}", text);
                     // Now you can parse the text as needed, e.g., parse GPX data
+                    parse_gpx(text);
                 } else {
                     error!("Error reading content as string.");
                 }
@@ -62,4 +64,30 @@ pub fn parse_gpx_file(file: File) {
     // Prevent the closure from being garbage-collected prematurely
     // Note: This is necessary but be cautious of memory leaks.
     onloadend_closure.forget();
+}
+
+fn parse_gpx(text: String) {
+    // Convert the GPX data string into a byte slice
+    let data = text.as_bytes();
+
+    // Attempt to parse the GPX data
+    match read(data) {
+        Ok(gpx) => {
+            info!("Successfully parsed GPX data.");
+            // Here you can work with the `gpx` variable, which is of type `Gpx`
+            // For example, accessing waypoints, tracks, etc.
+            info!(
+                "Successfully parsed GPX data.\nTracks: {:?}, \nWaypoints: {:?}, \nRoutes: {:?}, \nVersion: {:?}, \nCreator: {:?} \nMetadata: {:?} \n",
+                gpx.tracks.len(),
+                gpx.waypoints.len(),
+                gpx.routes.len(),
+                gpx.version,
+                gpx.creator.unwrap(),
+                gpx.metadata.unwrap(),
+            );
+        }
+        Err(e) => {
+            error!("Failed to parse GPX data: {:?}", e);
+        }
+    }
 }
