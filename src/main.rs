@@ -133,7 +133,8 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             if let Some(file) = files.get(0) {
                 info!("File name: {}", file.name());
                 info!("File size: {}", file.size());
-                let _gpx = route::read_gpx_file(file);
+                // TODO: Error handling when read_gpx_file return Err
+                route::read_gpx_file(file);
             }
         }
     }

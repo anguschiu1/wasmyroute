@@ -8,7 +8,7 @@
 // Create a Leaflet polyline or layer group with these points
 // Add the polyline or layer group to the map
 
-use gpx::read;
+use gpx::{errors::GpxError, read, Gpx};
 use std::{cell::RefCell, rc::Rc};
 
 use log::{error, info};
@@ -17,6 +17,8 @@ use web_sys::{
     Event, File, FileReader,
 };
 
+/// Read the GPX file and parse it into a Rust struct
+// TODO: return Result<Gpx, Box<dyn Error>> to handle errors
 pub fn read_gpx_file(file: File) {
     let file_reader = match FileReader::new() {
         Ok(file_reader) => Rc::new(RefCell::new(file_reader)),
@@ -42,15 +44,18 @@ pub fn read_gpx_file(file: File) {
         match file_reader.result() {
             Ok(result) => {
                 // Here you can access the file's contents as text
+                // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
                 if let Some(text) = result.as_string() {
-                    info!("File content: {}", text);
+                    // info!("File content: {}", text);
                     // Now you can parse the text as needed, e.g., parse GPX data
-                    parse_gpx(text);
+                    // FIXME: improve the error handling, possibly returning Result<Gpx, Box<dyn Error>>
+                    parse_gpx(text).unwrap();
                 } else {
-                    error!("Error reading content as string.");
+                    error!("Error reading file content as string.");
                 }
             }
             Err(e) => {
+                // TODO: rethrow the error
                 error!("Error reading file: {:?}", e);
             }
         }
@@ -66,48 +71,50 @@ pub fn read_gpx_file(file: File) {
     onloadend_closure.forget();
 }
 
-fn parse_gpx(text: String) {
-    // Convert the GPX data string into a byte slice
+fn parse_gpx(text: String) -> Result<Gpx, GpxError> {
     let data = text.as_bytes();
-
-    // Attempt to parse the GPX data
-    match read(data) {
-        Ok(gpx) => {
-            info!("Successfully parsed GPX data.");
-            // Here you can work with the `gpx` variable, which is of type `Gpx`
-            // For example, accessing waypoints, tracks, etc.
-            gpx.tracks.iter().for_each(|track| {
-                info!(
-                    "Track name: {:?}",
-                    track.name.as_ref().unwrap_or(&"N/A".to_string())
-                );
-                info!(
-                    "Track type: {:?}",
-                    track.type_.as_ref().unwrap_or(&"N/A".to_string())
-                );
-                info!("Number of track segment: {:?}", track.segments.len());
-                track.segments.iter().for_each(|segment| {
-                    info!("Number of point in tihs : {:?}", segment.points.len());
-                    // segment.points.iter().for_each(|point| {
-                    //     info!(
-                    //         "Point lat: {:?}, lon: {:?}",
-                    //         point.point().x(),
-                    //         point.point().y()
-                    //     );
-                    //     info!("Point elevation: {:?}", point.elevation);
-                    // });
-                });
-            });
-        }
-        Err(e) => {
-            error!("Failed to parse GPX data: {:?}", e);
-        }
-    }
+    let gpx = read(data)?;
+    info!("parse_gpx: Successfully parsed GPX string data.");
+    gpx.tracks.iter().for_each(|track| {
+        info!(
+            "Track name: {:?}",
+            track.name.as_ref().unwrap_or(&"N/A".to_string())
+        );
+        info!(
+            "Track type: {:?}",
+            track.type_.as_ref().unwrap_or(&"N/A".to_string())
+        );
+        info!("Number of track segment: {:?}", track.segments.len());
+        track.segments.iter().for_each(|segment| {
+            info!("Number of point in this : {:?}", segment.points.len());
+        });
+    });
+    Ok(gpx)
 }
 
+#[cfg(test)]
+// TODO: Add test cases for `parse_gpx`
+// TODO: Add test cases for `parse_gpx_file`
 mod tests {
     use super::*;
-    fn simulate_gpx_parsing(text: &str) {
-        parse_gpx(text.to_string());
+
+    #[test]
+    fn simulate_gpx_parsing() {
+        let text_gpx = r#"<?xml version="1.0" encoding="UTF-8"?>
+        <gpx creator="StravaGPX" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
+          version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+          <trk>
+            <name>Where was the rain?</name>
+            <type>cycling</type>
+            <trkseg>
+              <trkpt lat="52.1350720" lon="0.1298080">
+                <ele>23.6</ele>
+              </trkpt>
+            </trkseg>
+          </trk>
+        </gpx>"#;
+
+        assert!(parse_gpx(text_gpx.to_string()).is_ok());
     }
 }
