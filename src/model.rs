@@ -1,11 +1,15 @@
 use leaflet;
 
 use crate::geo::Coord;
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Model {
     pub zoomlevel: u8,
     pub position: Coord,
+    pub theme: String,
     pub map: Option<leaflet::Map>,
+    pub gpx: Option<gpx::Gpx>,
+    pub position_lg: Option<leaflet::LayerGroup>,
+    pub gpx_lg: Option<leaflet::LayerGroup>,
 }
 impl Model {
     pub fn zoom_in(&mut self) {

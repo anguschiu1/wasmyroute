@@ -1,6 +1,6 @@
 use leaflet::LatLng;
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone, Copy, Debug)]
 pub struct Coord {
     pub lat: f64,
     pub lon: f64,
