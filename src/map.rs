@@ -48,17 +48,22 @@ pub fn init() -> Model {
     };
     // Add a tile layer and a polyline to the map.
     add_tile_layer(model.map.as_ref().unwrap());
-    add_polyline(
-        &model,
-        Coord {
-            lat: 51.447148,
-            lon: -0.369531,
-        },
-        Coord {
-            lat: 51.846775,
-            lon: 0.026800,
-        },
+
+    let latlngs = Array::new();
+    latlngs.push(&LatLng::new(51.447148, -0.369531));
+    latlngs.push(&LatLng::new(51.846775, 0.026800));
+    latlngs.push(&LatLng::new(51.846775, 1.0));
+
+    info!(
+        "drawing line between these three points: {:?}",
+        latlngs.get(latlngs.length() - 1)
     );
+    let options = PolylineOptions::default();
+    if let Some(position_lg) = &model.position_lg {
+        position_lg.add_layer(&Polyline::new_with_options(&latlngs, &options));
+        // position_lg.clear_layers();
+    }
+
     model
 }
 
@@ -114,25 +119,29 @@ pub fn pan_to_position(model: &Model, position: Coord) {
 
 pub fn draw_gpx_route(model: &Model) {
     info!("draw_gpx_route...");
-    if let Some(map) = &model.map {
+    if let (Some(map), Some(gpx_lg)) = (&model.map, &model.gpx_lg) {
+        gpx_lg.clear_layers();
+        info!("gpx layer group cleared");
+
         if let Some(model_gpx) = &model.gpx {
             for track in model_gpx.tracks.iter() {
                 for segment in track.segments.iter() {
+                    let latlngs = Array::new();
                     for point in segment.points.iter() {
-                        let coord = Coord {
-                            lat: point.point().x(),
-                            lon: point.point().y(),
-                        };
-                        // info!("drawing line between these two points: {:?}", coord);
-                        add_polyline(model, coord, coord);
+                        latlngs.push(&LatLng::new(point.point().x(), point.point().y()));
+                        info!(
+                            "drawing line between these two points: {:?}",
+                            latlngs.get(latlngs.length() - 1)
+                        );
                     }
+                    let options = PolylineOptions::default();
+                    gpx_lg.add_layer(&Polyline::new_with_options(&latlngs, &options));
                 }
             }
+            gpx_lg.add_to(map);
         } else {
             info!("draw_gpx_route: model_gpx is None");
         }
-    } else {
-        info!("draw_gpx_route: map is None");
     }
     // TODO: Pan to gpx route
 }
