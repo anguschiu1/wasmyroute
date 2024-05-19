@@ -58,24 +58,21 @@ pub fn draw_gpx_route(model: &Model) {
         info!("gpx layer group cleared");
 
         if let Some(model_gpx) = &model.gpx {
-            for track in model_gpx.tracks.iter() {
-                for segment in track.segments.iter() {
-                    let latlngs = Array::new();
-                    for point in segment.points.iter() {
-                        latlngs.push(&LatLng::new(point.point().y(), point.point().x()));
-                        info!(
-                            "drawing line between these two points: {:?}",
-                            latlngs.get(latlngs.length() - 1)
-                        );
-                    }
-                    let options = PolylineOptions::default();
-                    gpx_lg.add_layer(&Polyline::new_with_options(&latlngs, &options));
-                }
-            }
-            gpx_lg.add_to(map);
+            model_gpx.tracks.iter().for_each(|track| {
+                track.segments.iter().for_each(|segment| {
+                    let latlngs = segment.points.iter().fold(Array::new(), |acc, point| {
+                        acc.push(&LatLng::new(point.point().y(), point.point().x()));
+                        acc
+                    });
+                    let gpx_route =
+                        &Polyline::new_with_options(&latlngs, &PolylineOptions::default());
+                    gpx_lg.add_layer(gpx_route);
+                    map.fit_bounds(&gpx_route.get_bounds());
+                    gpx_lg.add_to(map);
+                });
+            });
         } else {
-            info!("draw_gpx_route: model_gpx is None");
+            info!("draw_gpx_route: map or gpx_lg is None");
         }
     }
-    // TODO: Pan to gpx route
 }

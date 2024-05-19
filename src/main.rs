@@ -5,7 +5,6 @@ pub mod route;
 
 use core::fmt;
 use geo::Coord;
-use gpx::Gpx;
 use log::{error, info, Level};
 use model::Model;
 use seed::{prelude::*, *};
@@ -72,6 +71,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
             update_position(model.position, model, orders);
         }
         Msg::Position(position) => {
+            info!("position changed to: {:?}", position);
             update_position(position, model, orders);
         }
         Msg::GpxFileChanged(files) => {
@@ -222,7 +222,7 @@ fn read_gpx_file(
     model: &mut Model,
     file: File,
     orders: &mut impl Orders<Msg>,
-) -> Result<Gpx, Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error>> {
     let file_reader = match FileReader::new() {
         Ok(file_reader) => Rc::new(RefCell::new(file_reader)),
         Err(e) => {
@@ -237,29 +237,23 @@ fn read_gpx_file(
         return Err(Box::new(JsValueError(e)));
     }
 
-    // Clone the Rc<RefCell<FileReader>> for use inside the closure
+    // Clone the FileReader and model for use inside the closure
     let file_reader_clone = Rc::clone(&file_reader);
     let model_clone = Rc::new(RefCell::new(model.clone()));
+
     // Clone the application and message mapper from the orders for use in the callback closures.
     let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
 
     let gpx_file_callback = move |_event| {
-        // Use the cloned Rc<RefCell<FileReader>> here
         let file_reader = file_reader_clone.borrow();
-        // Check if the file was read successfully
         match file_reader.result() {
             Ok(result) => {
-                // Here you can access the file's contents as text
                 // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
                 if let Some(text) = result.as_string() {
                     model_clone.borrow_mut().gpx = route::parse_gpx(text);
-                    // if let Err(e) = route::parse_gpx(text) {
-                    //     error!("Error parsing GPX: {:?}", e);
-                    // }
                 } else {
                     error!("Error reading file content as string.");
                 }
-                // draw the GPX routes
                 map::draw_gpx_route(&model_clone.borrow_mut());
             }
             Err(e) => {
@@ -280,5 +274,5 @@ fn read_gpx_file(
     // Prevent the closure from being garbage-collected prematurely
     // Note: This is necessary but be cautious of memory leaks.
     onloadend_closure.forget();
-    Ok(Gpx::default()) // Return a default Gpx object for now
+    Ok(())
 }

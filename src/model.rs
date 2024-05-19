@@ -1,6 +1,6 @@
+use crate::geo::Coord;
 use leaflet;
 
-use crate::geo::Coord;
 #[derive(Default, Clone)]
 pub struct Model {
     pub zoomlevel: u8,
