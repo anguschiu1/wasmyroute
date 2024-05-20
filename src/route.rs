@@ -96,21 +96,11 @@ mod tests {
             (0.1297770, 52.1351360),
             (0.1297490, 52.1352000),
         ];
-        for i in 0..3 {
-            assert_eq!(
-                parse_gpx(text_gpx.to_string()).unwrap().tracks[0].segments[0].points[i]
-                    .point()
-                    .x(),
-                gpx_points[i].0,
-                "Testing track points x coordinates"
-            );
-            assert_eq!(
-                parse_gpx(text_gpx.to_string()).unwrap().tracks[0].segments[0].points[i]
-                    .point()
-                    .y(),
-                gpx_points[i].1,
-                "Testing track points y coordinates"
-            );
+        for (i, &(lon, lat)) in gpx_points.iter().enumerate() {
+            let parsed_gpx = parse_gpx(text_gpx.to_string()).unwrap();
+            let point = &parsed_gpx.tracks[0].segments[0].points[i];
+            assert_eq!(point.point().x(), lon, "Testing track points x coordinates");
+            assert_eq!(point.point().y(), lat, "Testing track points y coordinates");
         }
     }
 }

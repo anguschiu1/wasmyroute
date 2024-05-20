@@ -224,7 +224,7 @@ fn read_gpx_file(
     orders: &mut impl Orders<Msg>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let file_reader = match FileReader::new() {
-        Ok(file_reader) => Rc::new(RefCell::new(file_reader)),
+        Ok(file_reader) => Rc::new(file_reader),
         Err(e) => {
             error!("Error creating FileReader: {:?}", e);
             return Err(Box::new(JsValueError(e)));
@@ -232,20 +232,20 @@ fn read_gpx_file(
     };
 
     // Start reading the file as text
-    if let Err(e) = file_reader.borrow_mut().read_as_text(&file) {
+    if let Err(e) = file_reader.clone().read_as_text(&file) {
         error!("Error reading file as text: {:?}", e);
         return Err(Box::new(JsValueError(e)));
     }
 
     // Clone the FileReader and model for use inside the closure
-    let file_reader_clone = Rc::clone(&file_reader);
+    let file_reader_clone: Rc<FileReader> = Rc::clone(&file_reader);
     let model_clone = Rc::new(RefCell::new(model.clone()));
 
     // Clone the application and message mapper from the orders for use in the callback closures.
     let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
 
     let gpx_file_callback = move |_event| {
-        let file_reader = file_reader_clone.borrow();
+        let file_reader = file_reader_clone.clone();
         match file_reader.result() {
             Ok(result) => {
                 // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
@@ -268,7 +268,7 @@ fn read_gpx_file(
 
     // Set the onloadend event handler of the FileReader
     file_reader
-        .borrow_mut()
+        .clone()
         .set_onloadend(Some(onloadend_closure.as_ref().unchecked_ref()));
 
     // Prevent the closure from being garbage-collected prematurely
