@@ -225,21 +225,23 @@ fn read_gpx_file(
     };
 
     // Start reading the file as text
+    // As described in https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsText,
+    // When the read operation is complete, the readyState property is changed to DONE,
+    // the loadend event is triggered, and the result property contains the contents of the file as a text string.
     if let Err(e) = file_reader.clone().read_as_text(&file) {
         error!("Error reading file as text: {:?}", e);
         return Err(Box::new(JsValueError(e)));
     }
 
     // Clone the FileReader and model for use inside the closure
-    let file_reader_clone: Rc<FileReader> = Rc::clone(&file_reader);
+    let file_reader_rc: Rc<FileReader> = file_reader.clone();
     let mut model_clone = model.clone();
-    // let model_clone = Rc::new(RefCell::new(model.clone()));
 
     // Clone the application and message mapper from the orders for use in the callback closures.
     let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
 
     let gpx_file_callback = move |_event| {
-        let file_reader = file_reader_clone.clone();
+        let file_reader = file_reader_rc.clone();
         match file_reader.result() {
             Ok(result) => {
                 // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
