@@ -8,7 +8,7 @@ use geo::Coord;
 use log::{error, info, Level};
 use model::Model;
 use seed::{prelude::*, *};
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 use web_sys::{
     wasm_bindgen::{closure::Closure, JsCast, JsValue},
     Coordinates, Event, File, FileList, FileReader, Geolocation, Position, PositionError,
@@ -239,7 +239,8 @@ fn read_gpx_file(
 
     // Clone the FileReader and model for use inside the closure
     let file_reader_clone: Rc<FileReader> = Rc::clone(&file_reader);
-    let model_clone = Rc::new(RefCell::new(model.clone()));
+    let mut model_clone = model.clone();
+    // let model_clone = Rc::new(RefCell::new(model.clone()));
 
     // Clone the application and message mapper from the orders for use in the callback closures.
     let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
@@ -250,18 +251,18 @@ fn read_gpx_file(
             Ok(result) => {
                 // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
                 if let Some(text) = result.as_string() {
-                    model_clone.borrow_mut().gpx = route::parse_gpx(text);
+                    model_clone.gpx = route::parse_gpx(text);
                 } else {
                     error!("Error reading file content as string.");
                 }
-                map::draw_gpx_route(&model_clone.borrow_mut());
+                map::draw_gpx_route(&model_clone);
             }
             Err(e) => {
                 // TODO: rethrow the error
                 error!("Error reading file: {:?}", e);
             }
         }
-        app.update(msg_mapper(Msg::Position(model_clone.borrow().position)));
+        app.update(msg_mapper(Msg::Position(model_clone.position)));
     };
     // Create a closure to capture the FileReader and perform actions once the file is read
     let onloadend_closure = Closure::wrap(Box::new(gpx_file_callback) as Box<dyn FnMut(Event)>);
