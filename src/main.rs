@@ -104,14 +104,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 /// DOM node that encapsulates the elements and event listeners, facilitating efficient updates to the
 /// real DOM in response to state changes.
 fn view(model: &Model) -> Vec<Node<Msg>> {
-    vec![
-        view_zoom_action(model),
-        view_file_input(),
-        div![label![format!(
-            "lat:{}, lon:{}",
-            model.position.lat, model.position.lon
-        )]],
-    ]
+    vec![view_zoom_action(model), view_file_input()]
 }
 
 fn view_zoom_action(model: &Model) -> Node<Msg> {
