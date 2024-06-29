@@ -1,16 +1,19 @@
 [package]
 name = "wasmyroute"
 version = "0.1.0"
-authors = ["Angus Chiu"]
-description = "Offline Turn-based Navigation for trail and cycling routes"
-license = "MIT Or Apache-2.0"
-repository = "https://github.com/anguschiu1/wasmybikeroute.git"
 edition = "2021"
+authors = ["Angus Chiu"]
+readme = "README.md"
+description = "Offline Turn-based Navigation for trail and cycling routes"
+license = "MIT"
+repository = "https://github.com/anguschiu1/wasmybikeroute.git"
+keywords = ["yew", "trunk"]
+categories = ["gui", "wasm", "web-programming", "navigation"]
 
 [dependencies]
+yew = { version = "0.21.0", features = ["csr"] }
 console_log = { version = "1.0.0", features = ["color"] }
 log = "0.4.20"
-seed = "0.10.0"
 web-sys = { version = "0.3.65", features = [
   "Coordinates",
   "Position",

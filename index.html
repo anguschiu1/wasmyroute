@@ -1,12 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 
 <head>
+  <meta charset="utf-8" />
+  <title>Yew micro projects</title>
   <!-- Leaflet's CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-  <link data-trunk rel="scss" href="src/styles/index.scss" />
+  <link data-trunk rel="rust" />
+  <link data-trunk rel="scss" href="index.scss" />
 
   <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -30,8 +33,8 @@
 </head>
 
 <body>
-  <section id="map">Loading ...</section>
-  <section id="app">Loading ...</section>
+  <section id="map">Loading map ...</section>
+  <section id="app">Loading app ...</section>
 </body>
 
 </html>
