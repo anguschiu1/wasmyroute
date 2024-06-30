@@ -1,10 +1,10 @@
+use gloo_utils::window;
 use leaflet::LatLng;
 use log::info;
 use web_sys::{
     wasm_bindgen::{closure::Closure, JsCast},
-    window, Coordinates, Geolocation, Position, PositionError, PositionOptions,
+    Coordinates, Geolocation, Position, PositionError, PositionOptions,
 };
-
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Coord {
     pub lat: f64,
@@ -17,27 +17,12 @@ impl From<Coord> for LatLng {
     }
 }
 
-/// Initializes the geolocation feature of the web application.
-///
-/// This function attempts to access the user's current geolocation using the browser's Geolocation API.
-/// On success, it updates the application state with the user's current latitude and longitude.
-/// On failure, it logs an error message to the console.
-///
-/// # Parameters
-/// - `orders`: A mutable reference to the application's `Orders` object, which allows for sending messages
-///   and commands within the application.
-///
-/// # Panics
-/// This function panics if it fails to access the Geolocation API or if the browser denies the geolocation request.
 fn init_geolocation() {
     // Attempt to access the Geolocation API from the browser's window object.
-    let geolocation = window()
+    let geolocation: Geolocation = window()
         .navigator()
         .geolocation()
         .expect("Unable to get geolocation.");
-
-    // Clone the application and message mapper from the orders for use in the callback closures.
-    // let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
 
     // Define a success callback that extracts the latitude and longitude from the Position object,
     // logs them, and sends a message to update the application state with the new coordinates.

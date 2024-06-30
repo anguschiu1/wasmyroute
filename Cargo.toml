@@ -20,7 +20,9 @@ web-sys = { version = "0.3.65", features = [
   "PositionError",
   "Geolocation",
   "PositionOptions",
+  "Navigator",
 ] }
 leaflet = "0.4"
 rand = "0.8.5"
 gpx = "0.10.0"
+gloo-utils = "0.2.0"
