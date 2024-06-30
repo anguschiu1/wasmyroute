@@ -7,7 +7,7 @@ mod app;
 
 use app::App;
 use geo::Coord;
-use log::{error, info, Level};
+use log::{info, Level};
 use model::Model;
 
 fn main() {
