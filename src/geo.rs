@@ -17,7 +17,7 @@ impl From<Coord> for LatLng {
     }
 }
 
-fn init_geolocation() {
+pub fn init_geolocation() {
     // Attempt to access the Geolocation API from the browser's window object.
     let geolocation: Geolocation = window()
         .navigator()
