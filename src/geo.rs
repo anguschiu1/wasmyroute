@@ -43,8 +43,13 @@ pub fn init_geolocation() -> Html {
             position.lat, position.lon
         );
         let mut model = model_state_clone.deref().clone();
-        model.position = position;
+        model.position = Some(position);
         model_state_clone.set(model);
+        if model_state_clone.map.is_some() {
+            info!("Map is Some");
+        }
+        // // pan map to current position
+        map::pan_to_position(&model_state_clone, position);
     }) as Box<dyn FnMut(Position)>);
 
     // Define an error callback that logs any errors encountered while attempting to get the geolocation.
@@ -68,11 +73,7 @@ pub fn init_geolocation() -> Html {
     // Prevent the callbacks from being garbage-collected prematurely.
     success_callback.forget();
     error_callback.forget();
-
-    let pos = (*model_state).clone().position;
-    // // pan map to current position
-    // map::pan_to_position(&model_state, pos);
-
+    let pos = (*model_state).clone().position.unwrap_or_default();
     html! {
         <p>{"Position:"} {pos.lat}{","}{pos.lon}</p>
     }

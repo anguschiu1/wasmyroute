@@ -1,9 +1,37 @@
+use std::ops::Deref;
+
 use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer};
 use log::info;
 use rand::prelude::*;
 use web_sys::js_sys::Array;
+use yew::prelude::*;
 
-use crate::{Coord, Model};
+use crate::geo::Coord;
+use crate::Model;
+
+#[function_component(MainMap)]
+pub fn main_map() -> Html {
+    let model_state = use_state(Model::default);
+    let model_state_clone = model_state.clone();
+    use_effect(move || {
+        // FnOnce, init map for the MainMap component.
+        if model_state.map.is_none() {
+            let _model: Model = init();
+            model_state.set(_model);
+        }
+        // TeardownFn
+        || {}
+    });
+
+    html! {
+    <>
+      <div id="map"></div>
+      <p>{"Zoom: "}{&model_state_clone.zoomlevel}</p>
+      <p>{"Map in model: "}{&model_state_clone.map.is_some()}</p>
+    </>
+
+    }
+}
 
 pub fn init() -> Model {
     // Set default map options.
@@ -30,11 +58,14 @@ pub fn init() -> Model {
     let model = Model {
         map: Some(map),
         zoomlevel: 10,
-        position,
+        position: Some(position),
         gpx_lg: Some(gpx_lg),
         position_lg: Some(position_lg),
         ..Default::default() // Initialize counter if needed.
     };
+    if model.map.is_some() {
+        info!("Map is Some");
+    }
     // Add a tile layer and a polyline to the map.
     add_tile_layer(model.map.as_ref().unwrap());
 
@@ -45,7 +76,10 @@ fn add_tile_layer(map: &Map) {
 }
 
 pub fn pan_to_position(model: &Model, position: Coord) {
+    info!("pan_to_position...");
+    info!("Position: {},{}", position.lat, position.lon);
     if let Some(map) = &model.map {
+        info!("Map is Some");
         let zoom = model.zoomlevel.into();
         map.set_view(&position.into(), zoom); // Pass a reference to LatLng
     }

@@ -1,16 +1,13 @@
 use crate::geo::InitGeolocation;
-use crate::map;
+use crate::map::MainMap;
+use crate::model::Model;
 use yew::prelude::*;
 
 #[function_component(App)]
 pub fn app() -> Html {
-    use_effect(|| {
-        let _model = map::init();
-        || {}
-    });
     html! {
         <main>
-            <div id="map"></div>
+            <MainMap />
             <InitGeolocation />
         </main>
     }

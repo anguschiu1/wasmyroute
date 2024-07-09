@@ -4,7 +4,7 @@ use leaflet;
 #[derive(Default, Clone)]
 pub struct Model {
     pub zoomlevel: u8,
-    pub position: Coord,
+    pub position: Option<Coord>,
     pub theme: String,
     pub map: Option<leaflet::Map>,
     pub gpx: Option<gpx::Gpx>,
