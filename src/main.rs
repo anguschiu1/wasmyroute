@@ -6,7 +6,6 @@ mod route;
 mod app;
 
 use app::App;
-use geo::Coord;
 use log::{info, Level};
 use model::Model;
 
