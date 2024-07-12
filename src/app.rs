@@ -30,7 +30,16 @@ pub fn app() -> Html {
                 };
                 // // pan map to current position
                 pos.set(position);
-                info!("Geolocation API callback success\n{:?}", *pos);
+
+                info!(
+                    "1. Geolocation API callback success\n position - {:?}",
+                    position
+                );
+                // Caution and possible cause of empty return: https://docs.rs/yew/latest/yew/functional/fn.use_state.html#caution
+                info!(
+                    "2. Geolocation API callback success\n pos: UseStateHandle<Coord> {:?}",
+                    *pos.clone()
+                );
             }) as Box<dyn FnMut(Position)>);
 
             // Define an error callback that logs any errors encountered while attempting to get the geolocation.
