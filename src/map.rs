@@ -67,7 +67,7 @@ pub fn main_map(props: &MainMapProps) -> Html {
         info!("4.2 No Map, skipping update.");
     }
     let pos = props.pos;
-    info!("pos is {:?}", pos);
+    info!("4.3 pos is {:?}", pos);
     //FIXME: Find out why map is not being added to the model.
     // This is because the use_effect hook runs immediately after the use_effect_with hook, and the model is not updated.
     // It doesn't matter if the model is stored in a ref cell, or via use_state hook.
@@ -75,14 +75,14 @@ pub fn main_map(props: &MainMapProps) -> Html {
     use_effect(move || {
         info!("5 use_effect - borrowing Map...");
         info!(
-            "6 print strong count of strong ref cycles: {}",
+            "5.1 print strong count of strong ref cycles: {}",
             Rc::strong_count(&model_clone)
         );
         if let Some(map) = model_clone.borrow().map.as_ref() {
-            info!("use_effect - Updating map view...");
+            info!("5.2a use_effect - Map found, updating map view...");
             map.set_view(&LatLng::new(pos.lat, pos.lon), 1.0);
         } else {
-            info!("use_effect - No Map, skipping update.");
+            info!("5.2b use_effect - No Map, skipping update.");
         }
         || {}
     });
@@ -92,7 +92,9 @@ pub fn main_map(props: &MainMapProps) -> Html {
     <p>{ format!("pos: {:?}", props.pos) }</p>
     <div id="map"></div>
     <p>{if let Some(_map) = model.borrow().map.as_ref() {
-        info!("VNode renders: Map is in model.")
+        "Map is in model".to_string()
+    } else {
+        "Map is not in model".to_string()
     }}</p>
     </>
     }
