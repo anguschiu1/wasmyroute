@@ -42,8 +42,14 @@ pub fn main_map(props: &MainMapProps) -> Html {
             };
             // Set the map view to the random position with a default zoom level.
             add_tile_layer(&map);
-            map.set_view(&LatLng::new(position.lat, position.lon), 12.0);
             model.borrow_mut().map = Some(map);
+            model
+                .borrow_mut()
+                .map
+                .as_ref()
+                .expect("Map should be initialized")
+                .set_view(&LatLng::new(position.lat, position.lon), 18.0);
+
             // TeardownFn
             || {}
         });
@@ -63,6 +69,9 @@ pub fn main_map(props: &MainMapProps) -> Html {
     let pos = props.pos;
     info!("pos is {:?}", pos);
     //FIXME: Find out why map is not being added to the model.
+    // This is because the use_effect hook runs immediately after the use_effect_with hook, and the model is not updated.
+    // It doesn't matter if the model is stored in a ref cell, or via use_state hook.
+    // It requires the the VNode to be re-rendered and that the model changes.
     use_effect(move || {
         info!("5 use_effect - borrowing Map...");
         info!(
@@ -71,7 +80,7 @@ pub fn main_map(props: &MainMapProps) -> Html {
         );
         if let Some(map) = model_clone.borrow().map.as_ref() {
             info!("use_effect - Updating map view...");
-            map.set_view(&LatLng::new(pos.lat, pos.lon), 10.0);
+            map.set_view(&LatLng::new(pos.lat, pos.lon), 1.0);
         } else {
             info!("use_effect - No Map, skipping update.");
         }
@@ -82,6 +91,9 @@ pub fn main_map(props: &MainMapProps) -> Html {
     <>
     <p>{ format!("pos: {:?}", props.pos) }</p>
     <div id="map"></div>
+    <p>{if let Some(_map) = model.borrow().map.as_ref() {
+        info!("VNode renders: Map is in model.")
+    }}</p>
     </>
     }
 }
