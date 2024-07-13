@@ -20,11 +20,11 @@ pub struct MainMapProps {
 #[function_component(MainMap)]
 pub fn main_map(props: &MainMapProps) -> Html {
     info!("1 Rendering MainMap, props.pos {:?}", props.pos);
-    let model = Rc::new(RefCell::new(Model::default()));
+    let model_state = use_state(Model::default);
     {
-        let model = Rc::clone(&model);
+        let model = model_state.clone();
+        // use_effect_with hook with empty dependencies ensure this effect runs only once.
         use_effect_with((), move |_| {
-            // use_effect_with hook with empty dependencies ensure this effect runs only once.
             // FnOnce, init map for the MainMap component.
             info!("2 use_effect_with() - Initializing map...");
             let options = MapOptions::default();
@@ -42,56 +42,44 @@ pub fn main_map(props: &MainMapProps) -> Html {
             };
             // Set the map view to the random position with a default zoom level.
             add_tile_layer(&map);
-            model.borrow_mut().map = Some(map);
-            model
-                .borrow_mut()
-                .map
-                .as_ref()
-                .expect("Map should be initialized")
-                .set_view(&LatLng::new(position.lat, position.lon), 18.0);
+            // Clone the current state, modify it, and set the new state
+            map.set_view(&LatLng::new(position.lat, position.lon), 18.0);
+            let mut new_model = (*model).clone();
+            new_model.map = Some(map);
+            model.set(new_model);
 
             // TeardownFn
             || {}
         });
     }
 
-    // Use effect_with_deps hook to trigger re-rendering when props.pos changes.
-    let model_clone = Rc::clone(&model);
-    info!(
-        "4 print strong count of strong ref cycles: {}",
-        Rc::strong_count(&model_clone)
-    );
-    if let Some(_map) = model.borrow().map.as_ref() {
+    let model_clone = model_state.clone();
+    if let Some(_map) = model_clone.map.as_ref() {
         info!("4.1 Map is in model.");
     } else {
         info!("4.2 No Map, skipping update.");
     }
     let pos = props.pos;
     info!("4.3 pos is {:?}", pos);
-    //FIXME: Find out why map is not being added to the model.
-    // This is because the use_effect hook runs immediately after the use_effect_with hook, and the model is not updated.
-    // It doesn't matter if the model is stored in a ref cell, or via use_state hook.
-    // It requires the the VNode to be re-rendered and that the model changes.
-    use_effect(move || {
-        info!("5 use_effect - borrowing Map...");
-        info!(
-            "5.1 print strong count of strong ref cycles: {}",
-            Rc::strong_count(&model_clone)
-        );
-        if let Some(map) = model_clone.borrow().map.as_ref() {
-            info!("5.2a use_effect - Map found, updating map view...");
-            map.set_view(&LatLng::new(pos.lat, pos.lon), 1.0);
-        } else {
-            info!("5.2b use_effect - No Map, skipping update.");
-        }
-        || {}
-    });
+    {
+        let model = model_state.clone();
+        use_effect(move || {
+            info!("5 use_effect - borrowing Map...");
+            if let Some(map) = model.map.as_ref() {
+                info!("5.2a use_effect - Map found, updating map view...");
+                map.set_view(&LatLng::new(pos.lat, pos.lon), 16.0);
+            } else {
+                info!("5.2b use_effect - No Map, skipping update.");
+            }
+            || {}
+        });
+    }
 
     html! {
     <>
     <p>{ format!("pos: {:?}", props.pos) }</p>
     <div id="map"></div>
-    <p>{if let Some(_map) = model.borrow().map.as_ref() {
+    <p>{if let Some(_map) = (*model_state).clone().map {
         "Map is in model".to_string()
     } else {
         "Map is not in model".to_string()
