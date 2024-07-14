@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer};
+use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer, Zoom};
 use log::info;
 use rand::prelude::*;
 use web_sys::console::info;
@@ -33,21 +33,23 @@ pub fn main_map(props: &MainMapProps) -> Html {
             gpx_lg.add_to(&map);
             let position_lg = LayerGroup::new();
             position_lg.add_to(&map);
+            let zoom: u8 = 18;
 
             // Generate a random start location to initialize the map if geolocation isn't available.
-            let mut rng = thread_rng();
-            let position = Coord {
-                lat: rng.gen_range(-90.0..90.0),
-                lon: rng.gen_range(-180.0..180.0),
-            };
+            // let mut rng = thread_rng();
+            // let position = Coord {
+            //     lat: rng.gen_range(-90.0..90.0),
+            //     lon: rng.gen_range(-180.0..180.0),
+            // };
             // Set the map view to the random position with a default zoom level.
             add_tile_layer(&map);
-            // Clone the current state, modify it, and set the new state
-            map.set_view(&LatLng::new(position.lat, position.lon), 18.0);
+            pan_to_position(&model, Coord::default());
             let mut new_model = (*model).clone();
             new_model.map = Some(map);
+            new_model.position_lg = Some(position_lg);
+            new_model.gpx_lg = Some(gpx_lg);
+            new_model.zoomlevel = zoom;
             model.set(new_model);
-
             // TeardownFn
             || {}
         });
@@ -65,12 +67,7 @@ pub fn main_map(props: &MainMapProps) -> Html {
         let model = model_state.clone();
         use_effect(move || {
             info!("5 use_effect - borrowing Map...");
-            if let Some(map) = model.map.as_ref() {
-                info!("5.2a use_effect - Map found, updating map view...");
-                map.set_view(&LatLng::new(pos.lat, pos.lon), 16.0);
-            } else {
-                info!("5.2b use_effect - No Map, skipping update.");
-            }
+            pan_to_position(&model, pos);
             || {}
         });
     }
@@ -94,12 +91,12 @@ fn add_tile_layer(map: &Map) {
 
 pub fn pan_to_position(model: &Model, position: Coord) {
     info!("pan_to_position...");
-    info!("Position: {},{}", position.lat, position.lon);
     if model.map.is_some() {
-        info!("Model has a Map");
-        let zoom = model.zoomlevel.into();
-        let map = model.map.as_ref().unwrap(); // Get a reference to the map.
-        map.set_view(&position.into(), zoom); // Pass a reference to LatLng
+        let zoom: u8 = model.zoomlevel;
+        let map = model.map.as_ref().unwrap();
+        map.set_view(&position.into(), zoom.into());
+    } else {
+        info!("pan_to_position: Map is not in model");
     }
 }
 
