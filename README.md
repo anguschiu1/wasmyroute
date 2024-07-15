@@ -32,6 +32,26 @@ To deploy this project
 trunk serve
 ```
 
+## Running Tests
+
+To run tests, run the following command
+
+```bash
+cargo test
+```
+
+To run wasm-bindgen test, install `cargo install wasm-bindgen-cli` and then run the following command
+
+```bash
+wasm-pack test --safari
+```
+
+You will also need to open Safari window to see the result.
+
+## Tech Stack
+
+**Client:** WebAssembly, Rust, Yew
+
 ## Acknowledgements
 
 TBD
@@ -39,15 +59,3 @@ TBD
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
-
-## Running Tests
-
-To run tests, run the following command
-
-```bash
-  cargo test
-```
-
-## Tech Stack
-
-**Client:** WebAssembly, Rust

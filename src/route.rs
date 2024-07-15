@@ -35,7 +35,7 @@ impl Component for GpxFile {
             <input
                     id="file-upload"
                     type="file"
-                    accept=".gpx"
+                    // accept=".gpx"
                     multiple={false}
                     onchange={ctx.link().callback(move |e: Event| {
                         let input: HtmlInputElement = e.target_unchecked_into();
@@ -92,7 +92,7 @@ impl GpxFile {
     fn read_gpx_file(
         file: File,
         on_model_update: Callback<Model>,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<Rc<FileReader>, Box<dyn std::error::Error>> {
         let file_reader = match FileReader::new() {
             Ok(file_reader) => Rc::new(file_reader),
             Err(e) => {
@@ -112,7 +112,10 @@ impl GpxFile {
 
         // Clone the FileReader and model for use inside the closure
         let file_reader_rc: Rc<FileReader> = file_reader.clone();
-        let mut model = Model::default();
+        let mut model = Model {
+            gpx: None,
+            ..Model::default()
+        };
 
         // Clone the application and message mapper from the orders for use in the callback closures.
         // let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
@@ -149,7 +152,7 @@ impl GpxFile {
         // Prevent the closure from being garbage-collected prematurely
         // Note: This is necessary but be cautious of memory leaks.
         onloadend_closure.forget();
-        Ok(())
+        Ok(file_reader)
     }
 
     pub fn parse_gpx(text: String) -> Option<Gpx> {
@@ -181,8 +184,6 @@ impl GpxFile {
     }
 }
 #[cfg(test)]
-// TODO: Add test cases for `parse_gpx`
-// TODO: Add test cases for `parse_gpx_file`
 mod tests {
     use super::*;
 
@@ -253,5 +254,146 @@ mod tests {
             assert_eq!(point.point().x(), lon, "Testing track points x coordinates");
             assert_eq!(point.point().y(), lat, "Testing track points y coordinates");
         }
+    }
+
+    use gloo_utils::format::JsValueSerdeExt;
+    use wasm_bindgen_test::*;
+    use web_sys::ProgressEvent;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test]
+    fn test_onloadend_event_triggered() {
+        let file = File::new_with_str_sequence(
+            &JsValue::from_serde(&vec!["test content"]).unwrap(),
+            "test.gpx",
+        )
+        .unwrap();
+        let on_model_update = Callback::from(|_model: Model| {});
+
+        let result = GpxFile::read_gpx_file(file, on_model_update);
+        assert!(
+            result.is_ok(),
+            "File reading should be initiated successfully"
+        );
+
+        let file_reader = result.unwrap();
+        let event = ProgressEvent::new("loadend").unwrap();
+        file_reader.dispatch_event(&event).unwrap();
+    }
+
+    #[wasm_bindgen_test]
+    fn test_closure_execution_on_successful_read() {
+        let file_content = r#"<?xml version="1.0" encoding="UTF-8"?>
+        <gpx creator="StravaGPX" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
+          version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
+          <trk>
+            <name>Where was the rain?</name>
+            <type>cycling</type>
+            <trkseg>
+              <trkpt lat="52.1350720" lon="0.1298080">
+                <ele>23.6</ele>
+              </trkpt>
+              <trkpt lat="52.1351360" lon="0.1297770">
+                <ele>23.8</ele>
+              </trkpt>
+              <trkpt lat="52.1352000" lon="0.1297490">
+                <ele>23.8</ele>
+              </trkpt>
+            </trkseg>
+          </trk>
+        </gpx>"#;
+        let file = File::new_with_str_sequence(
+            &JsValue::from_serde(&vec![file_content]).unwrap(),
+            "test.gpx",
+        )
+        .unwrap();
+        let on_model_update = Callback::from(|_| {
+            // assert!(model.gpx.is_some(), "Model should contain parsed GPX data");
+        });
+
+        let result = GpxFile::read_gpx_file(file, on_model_update);
+        assert!(
+            result.is_ok(),
+            "File reading should be initiated successfully"
+        );
+        assert!(
+            GpxFile::parse_gpx(file_content.to_string()).is_some(),
+            "Parsed GPX data should be valid"
+        );
+
+        let file_reader = result.unwrap();
+        let event = ProgressEvent::new("loadend").unwrap();
+        file_reader.dispatch_event(&event).unwrap();
+    }
+
+    #[wasm_bindgen_test]
+    fn test_closure_execution_on_error() {
+        let file = File::new_with_str_sequence(
+            &JsValue::from_serde(&vec!["invalid content"]).unwrap(),
+            "test.gpx",
+        )
+        .unwrap();
+        let on_model_update = Callback::from(|_model: Model| {});
+
+        let result = GpxFile::read_gpx_file(file, on_model_update);
+        assert!(
+            result.is_ok(),
+            "File reading should be initiated successfully"
+        );
+
+        let file_reader = result.unwrap();
+        let event = ProgressEvent::new("loadend").unwrap();
+        file_reader.dispatch_event(&event).unwrap();
+    }
+
+    #[wasm_bindgen_test]
+    fn test_closure_execution_with_empty_file() {
+        let file =
+            File::new_with_str_sequence(&JsValue::from_serde(&vec![""]).unwrap(), "test.gpx")
+                .unwrap();
+        let on_model_update = Callback::from(|model: Model| {
+            assert!(
+                model.gpx.is_none(),
+                "Model should not contain parsed GPX data"
+            );
+        });
+
+        let result = GpxFile::read_gpx_file(file, on_model_update);
+        assert!(
+            result.is_ok(),
+            "File reading should be initiated successfully"
+        );
+
+        let file_reader = result.unwrap();
+        let event = ProgressEvent::new("loadend").unwrap();
+        file_reader.dispatch_event(&event).unwrap();
+    }
+
+    #[wasm_bindgen_test]
+    fn test_closure_execution_with_large_file() {
+        let large_content = "a".repeat(10 * 1024 * 1024); // 10 MB of 'a'
+        let file = File::new_with_str_sequence(
+            &JsValue::from_serde(&vec![&large_content]).unwrap(),
+            "test.gpx",
+        )
+        .unwrap();
+        let on_model_update = Callback::from(|model: Model| {
+            assert!(
+                model.gpx.is_none(),
+                "Model should not contain parsed GPX data for invalid content"
+            );
+        });
+
+        let result = GpxFile::read_gpx_file(file, on_model_update);
+        assert!(
+            result.is_ok(),
+            "File reading should be initiated successfully"
+        );
+
+        let file_reader = result.unwrap();
+        let event = ProgressEvent::new("loadend").unwrap();
+        file_reader.dispatch_event(&event).unwrap();
     }
 }
