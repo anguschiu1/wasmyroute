@@ -34,19 +34,25 @@ trunk serve
 
 ## Running Tests
 
-To run tests, run the following command
+To run tests, run the following command:
 
 ```bash
 cargo test
 ```
 
-To run wasm-bindgen test, install `cargo install wasm-bindgen-cli` and then run the following command
+To run wasm-bindgen test, install `cargo install wasm-bindgen-cli` and then run the following command:
 
 ```bash
 wasm-pack test --safari
 ```
 
 You will also need to open Safari window to see the result.
+
+Or you can test under headless mode:
+
+```bash
+wasm-pack test --headless --firefox
+```
 
 ## Tech Stack
 
