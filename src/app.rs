@@ -1,4 +1,4 @@
-use crate::{geo::Coord, map::MainMap, route::GpxFile};
+use crate::{geo::Coord, map::MainMap, model::Model, route::GpxFile};
 
 use gloo_utils::window;
 use log::info;
@@ -66,10 +66,15 @@ pub fn app() -> Html {
         });
     }
 
+    let on_model_update = Callback::from(|model: Model| {
+        // Handle changes to the model in the GpxFile component
+        info!("GpxFile on_model_update: {:?}", model.gpx);
+    });
+
     html! {
         <main>
             <MainMap pos={*pos}/>
-            <GpxFile/>
+            <GpxFile on_model_update={on_model_update}/>
         </main>
     }
 }

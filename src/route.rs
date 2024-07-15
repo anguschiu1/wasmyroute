@@ -12,15 +12,20 @@ use web_sys::{
 use yew::prelude::*;
 pub struct GpxFile;
 
+#[derive(Properties, PartialEq)]
+pub struct GpxFileProps {
+    pub on_model_update: Callback<Model>,
+}
+
 pub enum Msg {
     Files(Vec<File>),
 }
 
 impl Component for GpxFile {
     type Message = Msg;
-    type Properties = ();
+    type Properties = GpxFileProps;
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self
     }
 
@@ -31,13 +36,28 @@ impl Component for GpxFile {
                     id="file-upload"
                     type="file"
                     accept=".gpx"
-                    multiple={true}
+                    multiple={false}
                     onchange={ctx.link().callback(move |e: Event| {
                         let input: HtmlInputElement = e.target_unchecked_into();
                         Self::upload_files(input.files())
                     })}
                 />
             </>
+        }
+    }
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::Files(files) => {
+                info!("Files uploaded: {:?}", files);
+                files.iter().for_each(|file| {
+                    if let Err(e) =
+                        Self::read_gpx_file(file.clone(), ctx.props().on_model_update.clone())
+                    {
+                        error!("Error reading GPX file: {:?}", e);
+                    }
+                });
+                true
+            }
         }
     }
 }
@@ -69,7 +89,10 @@ impl GpxFile {
     }
     /// Read the GPX file and parse it into a Rust struct
     // TODO: return Result<Gpx, Box<dyn Error>> to handle errors
-    fn read_gpx_file(model: &mut Model, file: File) -> Result<(), Box<dyn std::error::Error>> {
+    fn read_gpx_file(
+        file: File,
+        on_model_update: Callback<Model>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let file_reader = match FileReader::new() {
             Ok(file_reader) => Rc::new(file_reader),
             Err(e) => {
@@ -89,7 +112,7 @@ impl GpxFile {
 
         // Clone the FileReader and model for use inside the closure
         let file_reader_rc: Rc<FileReader> = file_reader.clone();
-        let mut model_clone = model.clone();
+        let mut model = Model::default();
 
         // Clone the application and message mapper from the orders for use in the callback closures.
         // let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
@@ -100,8 +123,9 @@ impl GpxFile {
                 Ok(result) => {
                     // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
                     if let Some(text) = result.as_string() {
-                        model_clone.gpx = Self::parse_gpx(text);
+                        model.gpx = Self::parse_gpx(text);
                         info!("GPX file read successfully.");
+                        on_model_update.emit(model.clone());
                     } else {
                         error!("Error reading file content as string.");
                     }

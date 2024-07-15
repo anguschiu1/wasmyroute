@@ -70,11 +70,6 @@ pub fn main_map(props: &MainMapProps) -> Html {
     <>
     <p>{ format!("pos: {:?}", props.pos) }</p>
     <div id="map"></div>
-    <p>{if let Some(_map) = (*model_state).clone().map {
-        "Map is in model".to_string()
-    } else {
-        "Map is not in model".to_string()
-    }}</p>
     </>
     }
 }
