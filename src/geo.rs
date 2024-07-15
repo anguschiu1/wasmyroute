@@ -1,14 +1,5 @@
-use gloo_utils::window;
 use leaflet::LatLng;
-use log::info;
-use std::ops::Deref;
-use web_sys::{
-    wasm_bindgen::{closure::Closure, JsCast},
-    Coordinates, Geolocation, Position, PositionError, PositionOptions,
-};
-use yew::prelude::*;
 
-use crate::{map, model::Model};
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Coord {
     pub lat: f64,

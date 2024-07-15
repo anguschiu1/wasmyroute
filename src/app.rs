@@ -1,5 +1,5 @@
-use crate::geo::Coord;
-use crate::map::MainMap;
+use crate::{geo::Coord, map::MainMap, route::GpxFile};
+
 use gloo_utils::window;
 use log::info;
 use web_sys::{
@@ -69,6 +69,7 @@ pub fn app() -> Html {
     html! {
         <main>
             <MainMap pos={*pos}/>
+            <GpxFile/>
         </main>
     }
 }

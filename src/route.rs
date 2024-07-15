@@ -1,34 +1,161 @@
 use gpx::{read, Gpx};
 use log::{error, info};
 
-pub fn parse_gpx(text: String) -> Option<Gpx> {
-    let data = text.as_bytes();
-    match read(data) {
-        Ok(gpx) => {
-            info!("parse_gpx: Successfully parsed GPX string data.");
-            gpx.tracks.iter().for_each(|track| {
-                info!(
-                    "Track name: {:?}",
-                    track.name.as_ref().unwrap_or(&"N/A".to_string())
-                );
-                info!(
-                    "Track type: {:?}",
-                    track.type_.as_ref().unwrap_or(&"N/A".to_string())
-                );
-                info!("Number of track segment: {:?}", track.segments.len());
-                track.segments.iter().for_each(|segment| {
-                    info!("Number of point in this : {:?}", segment.points.len());
-                });
-            });
-            Some(gpx)
-        }
-        Err(e) => {
-            error!("parse_gpx: Failed to parse GPX string data. {:?}", e);
-            None
+use crate::model::Model;
+
+use core::fmt;
+use std::rc::Rc;
+use web_sys::{
+    wasm_bindgen::{closure::Closure, JsCast, JsValue},
+    Event, File, FileList, FileReader, HtmlInputElement,
+};
+use yew::prelude::*;
+pub struct GpxFile;
+
+pub enum Msg {
+    Files(Vec<File>),
+}
+
+impl Component for GpxFile {
+    type Message = Msg;
+    type Properties = ();
+
+    fn create(ctx: &Context<Self>) -> Self {
+        Self
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <>
+            <input
+                    id="file-upload"
+                    type="file"
+                    accept=".gpx"
+                    multiple={true}
+                    onchange={ctx.link().callback(move |e: Event| {
+                        let input: HtmlInputElement = e.target_unchecked_into();
+                        Self::upload_files(input.files())
+                    })}
+                />
+            </>
         }
     }
 }
+// Define a custom error type that wraps JsValue
+#[derive(Debug)]
+struct JsValueError(JsValue);
 
+impl fmt::Display for JsValueError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "JsValueError: {:?}", self.0)
+    }
+}
+
+impl std::error::Error for JsValueError {}
+
+impl GpxFile {
+    fn upload_files(files: Option<FileList>) -> Msg {
+        let mut result = Vec::new();
+
+        if let Some(files) = files {
+            let files = js_sys::try_iter(&files)
+                .unwrap()
+                .unwrap()
+                .map(|v| web_sys::File::from(v.unwrap()))
+                .map(File::from);
+            result.extend(files);
+        }
+        Msg::Files(result)
+    }
+    /// Read the GPX file and parse it into a Rust struct
+    // TODO: return Result<Gpx, Box<dyn Error>> to handle errors
+    fn read_gpx_file(model: &mut Model, file: File) -> Result<(), Box<dyn std::error::Error>> {
+        let file_reader = match FileReader::new() {
+            Ok(file_reader) => Rc::new(file_reader),
+            Err(e) => {
+                error!("Error creating FileReader: {:?}", e);
+                return Err(Box::new(JsValueError(e)));
+            }
+        };
+
+        // Start reading the file as text
+        // As described in https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsText,
+        // When the read operation is complete, the readyState property is changed to DONE,
+        // the loadend event is triggered, and the result property contains the contents of the file as a text string.
+        if let Err(e) = file_reader.clone().read_as_text(&file) {
+            error!("Error reading file as text: {:?}", e);
+            return Err(Box::new(JsValueError(e)));
+        }
+
+        // Clone the FileReader and model for use inside the closure
+        let file_reader_rc: Rc<FileReader> = file_reader.clone();
+        let mut model_clone = model.clone();
+
+        // Clone the application and message mapper from the orders for use in the callback closures.
+        // let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
+
+        let gpx_file_callback = move |_event| {
+            let file_reader = file_reader_rc.clone();
+            match file_reader.result() {
+                Ok(result) => {
+                    // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
+                    if let Some(text) = result.as_string() {
+                        model_clone.gpx = Self::parse_gpx(text);
+                        info!("GPX file read successfully.");
+                    } else {
+                        error!("Error reading file content as string.");
+                    }
+                    // map::draw_gpx_route(&model_clone);
+                }
+                Err(e) => {
+                    // TODO: rethrow the error
+                    error!("Error reading file: {:?}", e);
+                }
+            }
+            // app.update(msg_mapper(Msg::Position(model_clone.position)));
+        };
+        // Create a closure to capture the FileReader and perform actions once the file is read
+        let onloadend_closure = Closure::wrap(Box::new(gpx_file_callback) as Box<dyn FnMut(Event)>);
+
+        // Set the onloadend event handler of the FileReader
+        file_reader
+            .clone()
+            .set_onloadend(Some(onloadend_closure.as_ref().unchecked_ref()));
+
+        // Prevent the closure from being garbage-collected prematurely
+        // Note: This is necessary but be cautious of memory leaks.
+        onloadend_closure.forget();
+        Ok(())
+    }
+
+    pub fn parse_gpx(text: String) -> Option<Gpx> {
+        let data = text.as_bytes();
+        match read(data) {
+            Ok(gpx) => {
+                info!("parse_gpx: Successfully parsed GPX string data.");
+                gpx.tracks.iter().for_each(|track| {
+                    info!(
+                        "Track name: {:?}",
+                        track.name.as_ref().unwrap_or(&"N/A".to_string())
+                    );
+                    info!(
+                        "Track type: {:?}",
+                        track.type_.as_ref().unwrap_or(&"N/A".to_string())
+                    );
+                    info!("Number of track segment: {:?}", track.segments.len());
+                    track.segments.iter().for_each(|segment| {
+                        info!("Number of point in this : {:?}", segment.points.len());
+                    });
+                });
+                Some(gpx)
+            }
+            Err(e) => {
+                error!("parse_gpx: Failed to parse GPX string data. {:?}", e);
+                None
+            }
+        }
+    }
+}
 #[cfg(test)]
 // TODO: Add test cases for `parse_gpx`
 // TODO: Add test cases for `parse_gpx_file`
@@ -58,11 +185,11 @@ mod tests {
           </trk>
         </gpx>"#;
 
-        assert!(parse_gpx(text_gpx.to_string()).is_some());
-        assert!(parse_gpx("".to_string()).is_none());
-        assert!(parse_gpx("not a gpx".to_string()).is_none());
+        assert!(GpxFile::parse_gpx(text_gpx.to_string()).is_some());
+        assert!(GpxFile::parse_gpx("".to_string()).is_none());
+        assert!(GpxFile::parse_gpx("not a gpx".to_string()).is_none());
         assert_eq!(
-            parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
+            GpxFile::parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
                 .name
                 .as_ref()
                 .unwrap(),
@@ -70,7 +197,7 @@ mod tests {
             "Testing track name"
         );
         assert_eq!(
-            parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
+            GpxFile::parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
                 .type_
                 .as_ref()
                 .unwrap(),
@@ -78,14 +205,14 @@ mod tests {
             "Testing track type"
         );
         assert_eq!(
-            parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
+            GpxFile::parse_gpx(text_gpx.to_string()).unwrap().tracks[0]
                 .segments
                 .len(),
             1,
             "Testing number of track segments"
         );
         assert_eq!(
-            parse_gpx(text_gpx.to_string()).unwrap().tracks[0].segments[0]
+            GpxFile::parse_gpx(text_gpx.to_string()).unwrap().tracks[0].segments[0]
                 .points
                 .len(),
             3,
@@ -97,7 +224,7 @@ mod tests {
             (0.1297490, 52.1352000),
         ];
         for (i, &(lon, lat)) in gpx_points.iter().enumerate() {
-            let parsed_gpx = parse_gpx(text_gpx.to_string()).unwrap();
+            let parsed_gpx = GpxFile::parse_gpx(text_gpx.to_string()).unwrap();
             let point = &parsed_gpx.tracks[0].segments[0].points[i];
             assert_eq!(point.point().x(), lon, "Testing track points x coordinates");
             assert_eq!(point.point().y(), lat, "Testing track points y coordinates");

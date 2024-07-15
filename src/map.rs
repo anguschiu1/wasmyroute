@@ -1,11 +1,5 @@
-use std::cell::RefCell;
-use std::ops::Deref;
-use std::rc::Rc;
-
-use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer, Zoom};
+use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer};
 use log::info;
-use rand::prelude::*;
-use web_sys::console::info;
 use web_sys::js_sys::Array;
 use yew::prelude::*;
 
@@ -100,28 +94,28 @@ pub fn pan_to_position(model: &Model, position: Coord) {
     }
 }
 
-// pub fn draw_gpx_route(model: &Model) {
-//     info!("draw_gpx_route...");
-//     if let (Some(map), Some(gpx_lg)) = (&model.map, &model.gpx_lg) {
-//         gpx_lg.clear_layers();
-//         info!("gpx layer group cleared");
+pub fn _draw_gpx_route(model: &Model) {
+    info!("draw_gpx_route...");
+    if let (Some(map), Some(gpx_lg)) = (&model.map, &model.gpx_lg) {
+        gpx_lg.clear_layers();
+        info!("gpx layer group cleared");
 
-//         if let Some(model_gpx) = &model.gpx {
-//             model_gpx.tracks.iter().for_each(|track| {
-//                 track.segments.iter().for_each(|segment| {
-//                     let latlngs = segment.points.iter().fold(Array::new(), |acc, point| {
-//                         acc.push(&LatLng::new(point.point().y(), point.point().x()));
-//                         acc
-//                     });
-//                     let gpx_route =
-//                         &Polyline::new_with_options(&latlngs, &PolylineOptions::default());
-//                     gpx_lg.add_layer(gpx_route);
-//                     map.fit_bounds(&gpx_route.get_bounds());
-//                     gpx_lg.add_to(map);
-//                 });
-//             });
-//         } else {
-//             info!("draw_gpx_route: map or gpx_lg is None");
-//         }
-//     }
-// }
+        if let Some(model_gpx) = &model.gpx {
+            model_gpx.tracks.iter().for_each(|track| {
+                track.segments.iter().for_each(|segment| {
+                    let latlngs = segment.points.iter().fold(Array::new(), |acc, point| {
+                        acc.push(&LatLng::new(point.point().y(), point.point().x()));
+                        acc
+                    });
+                    let gpx_route =
+                        &Polyline::new_with_options(&latlngs, &PolylineOptions::default());
+                    gpx_lg.add_layer(gpx_route);
+                    map.fit_bounds(&gpx_route.get_bounds());
+                    gpx_lg.add_to(map);
+                });
+            });
+        } else {
+            info!("draw_gpx_route: map or gpx_lg is None");
+        }
+    }
+}

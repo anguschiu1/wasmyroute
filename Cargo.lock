@@ -1315,6 +1315,7 @@ dependencies = [
  "console_log",
  "gloo-utils 0.2.0",
  "gpx",
+ "js-sys",
  "leaflet",
  "log",
  "rand",
