@@ -66,7 +66,7 @@ pub fn main_map(props: &MainMapProps) -> Html {
     html! {
     <>
         <div id="map"></div>
-        <p>{ format!("pos: {:?}", props.pos) }</p>
+        <div>{ format!("pos: {:?}", props.pos) }</div>
     </>
     }
 }
@@ -103,7 +103,7 @@ pub fn draw_gpx_route(model: &Model) {
                     let gpx_route =
                         &Polyline::new_with_options(&latlngs, &PolylineOptions::default());
                     gpx_lg.add_layer(gpx_route);
-                    map.fit_bounds(&gpx_route.get_bounds());
+                    map.fly_to_bounds(&gpx_route.get_bounds());
                     gpx_lg.add_to(map);
                 });
             });
