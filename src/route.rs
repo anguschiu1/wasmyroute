@@ -1,7 +1,6 @@
 use gpx::{read, Gpx};
+use js_sys::JsString;
 use log::{error, info};
-
-use crate::model::Model;
 
 use core::fmt;
 use std::rc::Rc;
@@ -14,7 +13,7 @@ pub struct GpxFile;
 
 #[derive(Properties, PartialEq)]
 pub struct GpxFileProps {
-    pub on_model_update: Callback<Model>,
+    pub on_gpx_update: Callback<Option<Gpx>>,
 }
 
 pub enum Msg {
@@ -51,7 +50,7 @@ impl Component for GpxFile {
                 info!("Files uploaded: {:?}", files);
                 files.iter().for_each(|file| {
                     if let Err(e) =
-                        Self::read_gpx_file(file.clone(), ctx.props().on_model_update.clone())
+                        Self::read_gpx_file(file.clone(), ctx.props().on_gpx_update.clone())
                     {
                         error!("Error reading GPX file: {:?}", e);
                     }
@@ -91,7 +90,7 @@ impl GpxFile {
     // TODO: return Result<Gpx, Box<dyn Error>> to handle errors
     fn read_gpx_file(
         file: File,
-        on_model_update: Callback<Model>,
+        on_gpx_update: Callback<Option<Gpx>>,
     ) -> Result<Rc<FileReader>, Box<dyn std::error::Error>> {
         let file_reader = match FileReader::new() {
             Ok(file_reader) => Rc::new(file_reader),
@@ -112,10 +111,7 @@ impl GpxFile {
 
         // Clone the FileReader and model for use inside the closure
         let file_reader_rc: Rc<FileReader> = file_reader.clone();
-        let mut model = Model {
-            gpx: None,
-            ..Model::default()
-        };
+        // let mut gpx = Gpx::default();
 
         // Clone the application and message mapper from the orders for use in the callback closures.
         // let (app, msg_mapper) = (orders.clone_app(), orders.msg_mapper());
@@ -124,11 +120,10 @@ impl GpxFile {
             let file_reader = file_reader_rc.clone();
             match file_reader.result() {
                 Ok(result) => {
-                    // TODO:To avoid the copying and re-encoding, consider the JsString::try_from() function from js-sys instead.
-                    if let Some(text) = result.as_string() {
-                        model.gpx = Self::parse_gpx(text);
+                    if let Some(text) = result.dyn_ref::<JsString>() {
+                        let gpx = Self::parse_gpx(text.into());
                         info!("GPX file read successfully.");
-                        on_model_update.emit(model.clone());
+                        on_gpx_update.emit(gpx);
                     } else {
                         error!("Error reading file content as string.");
                     }
@@ -139,7 +134,6 @@ impl GpxFile {
                     error!("Error reading file: {:?}", e);
                 }
             }
-            // app.update(msg_mapper(Msg::Position(model_clone.position)));
         };
         // Create a closure to capture the FileReader and perform actions once the file is read
         let onloadend_closure = Closure::wrap(Box::new(gpx_file_callback) as Box<dyn FnMut(Event)>);
@@ -269,9 +263,9 @@ mod tests {
             "test.gpx",
         )
         .unwrap();
-        let on_model_update = Callback::from(|_model: Model| {});
+        let on_gpx_update = Callback::from(|_| {});
 
-        let result = GpxFile::read_gpx_file(file, on_model_update);
+        let result = GpxFile::read_gpx_file(file, on_gpx_update);
         assert!(
             result.is_ok(),
             "File reading should be initiated successfully"
@@ -309,9 +303,7 @@ mod tests {
             "test.gpx",
         )
         .unwrap();
-        let on_model_update = Callback::from(|_| {
-            // assert!(model.gpx.is_some(), "Model should contain parsed GPX data");
-        });
+        let on_model_update = Callback::from(|_| {});
 
         let result = GpxFile::read_gpx_file(file, on_model_update);
         assert!(
@@ -335,9 +327,8 @@ mod tests {
             "test.gpx",
         )
         .unwrap();
-        let on_model_update = Callback::from(|_model: Model| {});
-
-        let result = GpxFile::read_gpx_file(file, on_model_update);
+        let on_gpx_update = Callback::from(|_| {});
+        let result = GpxFile::read_gpx_file(file, on_gpx_update);
         assert!(
             result.is_ok(),
             "File reading should be initiated successfully"
@@ -353,14 +344,8 @@ mod tests {
         let file =
             File::new_with_str_sequence(&JsValue::from_serde(&vec![""]).unwrap(), "test.gpx")
                 .unwrap();
-        let on_model_update = Callback::from(|model: Model| {
-            assert!(
-                model.gpx.is_none(),
-                "Model should not contain parsed GPX data"
-            );
-        });
-
-        let result = GpxFile::read_gpx_file(file, on_model_update);
+        let on_gpx_update = Callback::from(|_| {});
+        let result = GpxFile::read_gpx_file(file, on_gpx_update);
         assert!(
             result.is_ok(),
             "File reading should be initiated successfully"
@@ -379,14 +364,9 @@ mod tests {
             "test.gpx",
         )
         .unwrap();
-        let on_model_update = Callback::from(|model: Model| {
-            assert!(
-                model.gpx.is_none(),
-                "Model should not contain parsed GPX data for invalid content"
-            );
-        });
+        let on_gpx_update = Callback::from(|_| {});
 
-        let result = GpxFile::read_gpx_file(file, on_model_update);
+        let result = GpxFile::read_gpx_file(file, on_gpx_update);
         assert!(
             result.is_ok(),
             "File reading should be initiated successfully"

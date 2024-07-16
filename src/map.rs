@@ -28,14 +28,6 @@ pub fn main_map(props: &MainMapProps) -> Html {
             let position_lg = LayerGroup::new();
             position_lg.add_to(&map);
             let zoom: u8 = 18;
-
-            // Generate a random start location to initialize the map if geolocation isn't available.
-            // let mut rng = thread_rng();
-            // let position = Coord {
-            //     lat: rng.gen_range(-90.0..90.0),
-            //     lon: rng.gen_range(-180.0..180.0),
-            // };
-            // Set the map view to the random position with a default zoom level.
             add_tile_layer(&map);
             pan_to_position(&model, Coord::default());
             let mut new_model = (*model).clone();

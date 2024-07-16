@@ -1,6 +1,7 @@
-use crate::{geo::Coord, map::MainMap, model::Model, route::GpxFile};
+use crate::{geo::Coord, map::MainMap, route::GpxFile};
 
 use gloo_utils::window;
+use gpx::Gpx;
 use log::info;
 use web_sys::{
     wasm_bindgen::{closure::Closure, JsCast},
@@ -28,18 +29,8 @@ pub fn app() -> Html {
                     lat: position.coords().latitude(),
                     lon: position.coords().longitude(),
                 };
-                // // pan map to current position
                 pos.set(position);
-
-                info!(
-                    "1. Geolocation API callback success\n position - {:?}",
-                    position
-                );
-                // Caution and possible cause of empty return: https://docs.rs/yew/latest/yew/functional/fn.use_state.html#caution
-                info!(
-                    "2. Geolocation API callback success\n pos: UseStateHandle<Coord> {:?}",
-                    *pos.clone()
-                );
+                info!("2. pos: UseStateHandle<Coord> {:?}", *pos.clone());
             }) as Box<dyn FnMut(Position)>);
 
             // Define an error callback that logs any errors encountered while attempting to get the geolocation.
@@ -66,15 +57,15 @@ pub fn app() -> Html {
         });
     }
 
-    let on_model_update = Callback::from(|model: Model| {
-        // Handle changes to the model in the GpxFile component
-        info!("GpxFile on_model_update: {:?}", model.gpx);
+    let on_gpx_update = Callback::from(|gpx: Option<Gpx>| {
+        info!("GpxFile on_gpx_update: {:?}", gpx);
+        // TODO: Parse and display the GPX data in the MainMap component.
     });
 
     html! {
         <main>
             <MainMap pos={*pos}/>
-            <GpxFile on_model_update={on_model_update}/>
+            <GpxFile on_gpx_update={on_gpx_update}/>
         </main>
     }
 }
