@@ -60,8 +60,7 @@ pub fn app() -> Html {
 
     let gpx_state_clone = gpx_state.clone();
     let on_gpx_update = Callback::from(move |gpx: Option<Gpx>| {
-        info!("GpxFile on_gpx_update: {:?}", gpx_state_clone);
-        // TODO: Parse and display the GPX data in the MainMap component.
+        // info!("GpxFile on_gpx_update: {:?}", gpx);
         if let Some(gpx) = gpx {
             gpx_state_clone.set(gpx);
         }
@@ -71,6 +70,7 @@ pub fn app() -> Html {
         <main>
             <MainMap pos={*pos} gpx={(*gpx_state).clone()}/>
             <GpxFile on_gpx_update={on_gpx_update}/>
+            // <p>{ format!("gpx: {:?}", (*gpx_state).clone()s) }</p>
         </main>
     }
 }

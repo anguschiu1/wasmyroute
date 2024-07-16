@@ -36,7 +36,6 @@ pub fn main_map(props: &MainMapProps) -> Html {
             position_lg.add_to(&map);
 
             add_tile_layer(&map);
-            pan_to_position(&model, Coord::default());
 
             let mut new_model = (*model).clone();
             new_model.map = Some(map);
@@ -53,20 +52,21 @@ pub fn main_map(props: &MainMapProps) -> Html {
         let pos = props.pos;
         let model = model_state.clone();
         let new_gpx = props.gpx.clone();
-        use_effect(move || {
+        use_effect_with((pos, new_gpx.clone()), move |_| {
             info!("5 use_effect - borrowing Map...");
             let mut new_model = (*model).clone();
             new_model.gpx = Some(new_gpx);
-            // model.set(new_model);
+            info!("6. check gpx: {:?}", new_model.clone().gpx.unwrap());
             pan_to_position(&model, pos);
-            draw_gpx_route(&model);
+            draw_gpx_route(&new_model);
+            // model.set(new_model);
             || {}
         });
     }
     html! {
     <>
-        <p>{ format!("pos: {:?}", props.pos) }</p>
         <div id="map"></div>
+        <p>{ format!("pos: {:?}", props.pos) }</p>
     </>
     }
 }
