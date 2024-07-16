@@ -59,6 +59,7 @@ pub fn main_map(props: &MainMapProps) -> Html {
             info!("6. check gpx: {:?}", new_model.clone().gpx.unwrap());
             pan_to_position(&model, pos);
             draw_gpx_route(&new_model);
+            //FIXME the map state is not updated correctly after draw_gpx_route. It is emptied as the clone of model state is not up-to-date.
             // model.set(new_model);
             || {}
         });
