@@ -11,6 +11,7 @@ use yew::prelude::*;
 #[function_component(App)]
 pub fn app() -> Html {
     let pos = use_state(Coord::default); // Use state hook trigger re-rendering when state changes.
+    let gpx_state = use_state(Gpx::default); // Use state hook trigger re-rendering when state changes.
 
     {
         let pos = pos.clone();
@@ -57,14 +58,18 @@ pub fn app() -> Html {
         });
     }
 
-    let on_gpx_update = Callback::from(|gpx: Option<Gpx>| {
-        info!("GpxFile on_gpx_update: {:?}", gpx);
+    let gpx_state_clone = gpx_state.clone();
+    let on_gpx_update = Callback::from(move |gpx: Option<Gpx>| {
+        info!("GpxFile on_gpx_update: {:?}", gpx_state_clone);
         // TODO: Parse and display the GPX data in the MainMap component.
+        if let Some(gpx) = gpx {
+            gpx_state_clone.set(gpx);
+        }
     });
 
     html! {
         <main>
-            <MainMap pos={*pos}/>
+            <MainMap pos={*pos} gpx={(*gpx_state).clone()}/>
             <GpxFile on_gpx_update={on_gpx_update}/>
         </main>
     }

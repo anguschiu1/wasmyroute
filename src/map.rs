@@ -1,3 +1,4 @@
+use gpx::Gpx;
 use leaflet::{LatLng, LayerGroup, Map, MapOptions, Polyline, PolylineOptions, TileLayer};
 use log::info;
 use web_sys::js_sys::Array;
@@ -9,6 +10,7 @@ use crate::Model;
 #[derive(Properties, PartialEq)]
 pub struct MainMapProps {
     pub pos: Coord,
+    pub gpx: Gpx,
 }
 
 #[function_component(MainMap)]
@@ -17,51 +19,54 @@ pub fn main_map(props: &MainMapProps) -> Html {
     let model_state = use_state(Model::default);
     {
         let model = model_state.clone();
+        let pos = props.pos;
         // use_effect_with hook with empty dependencies ensure this effect runs only once.
         use_effect_with((), move |_| {
             // FnOnce, init map for the MainMap component.
             info!("2 use_effect_with() - Initializing map...");
             let options = MapOptions::default();
+            options.set_track_resize(true); // map automatically handles browser window resize to update itself.
+            options.set_center(pos.into());
+            options.set_zoom(1.0);
             let map = Map::new("map", &options);
+
             let gpx_lg = LayerGroup::new();
             gpx_lg.add_to(&map);
             let position_lg = LayerGroup::new();
             position_lg.add_to(&map);
-            let zoom: u8 = 18;
+
             add_tile_layer(&map);
             pan_to_position(&model, Coord::default());
+
             let mut new_model = (*model).clone();
             new_model.map = Some(map);
             new_model.position_lg = Some(position_lg);
             new_model.gpx_lg = Some(gpx_lg);
+            let zoom: u8 = 18;
             new_model.zoomlevel = zoom;
             model.set(new_model);
             // TeardownFn
             || {}
         });
     }
-
-    let model_clone = model_state.clone();
-    if let Some(_map) = model_clone.map.as_ref() {
-        info!("4.1 Map is in model.");
-    } else {
-        info!("4.2 No Map, skipping update.");
-    }
-    let pos = props.pos;
-    info!("4.3 pos is {:?}", pos);
     {
+        let pos = props.pos;
         let model = model_state.clone();
+        let new_gpx = props.gpx.clone();
         use_effect(move || {
             info!("5 use_effect - borrowing Map...");
+            let mut new_model = (*model).clone();
+            new_model.gpx = Some(new_gpx);
+            // model.set(new_model);
             pan_to_position(&model, pos);
+            draw_gpx_route(&model);
             || {}
         });
     }
-
     html! {
     <>
-    <p>{ format!("pos: {:?}", props.pos) }</p>
-    <div id="map"></div>
+        <p>{ format!("pos: {:?}", props.pos) }</p>
+        <div id="map"></div>
     </>
     }
 }
@@ -75,13 +80,14 @@ pub fn pan_to_position(model: &Model, position: Coord) {
     if model.map.is_some() {
         let zoom: u8 = model.zoomlevel;
         let map = model.map.as_ref().unwrap();
-        map.set_view(&position.into(), zoom.into());
+        // map.set_view(&position.into(), zoom.into());
+        map.fly_to(&position.into(), zoom.into());
     } else {
         info!("pan_to_position: Map is not in model");
     }
 }
 
-pub fn _draw_gpx_route(model: &Model) {
+pub fn draw_gpx_route(model: &Model) {
     info!("draw_gpx_route...");
     if let (Some(map), Some(gpx_lg)) = (&model.map, &model.gpx_lg) {
         gpx_lg.clear_layers();
