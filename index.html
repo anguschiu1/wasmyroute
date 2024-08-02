@@ -1,40 +1,20 @@
+<!DOCTYPE html>
 <html>
 
 <head>
+  <meta charset="utf-8" />
+  <title>Yew micro projects</title>
   <!-- Leaflet's CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-  <link data-trunk rel="scss" href="src/styles/index.scss" />
+  <link data-trunk rel="rust" />
+  <link data-trunk rel="scss" href="index.scss" />
 
   <!-- Make sure you put this AFTER Leaflet's CSS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-  <!-- test code to print current coordinates on console -->
-  <script>
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
-    };
-
-    function success(pos) {
-      const crd = pos.coords;
-
-      console.log("Your current position is:");
-      console.log(`Latitude : ${crd.latitude}`);
-      console.log(`Longitude: ${crd.longitude}`);
-      console.log(`More or less ${crd.accuracy} meters.`);
-    }
-
-    function error(err) {
-      console.warn(`ERROR(${err.code}): ${err.message}`);
-    }
-
-    navigator.geolocation.getCurrentPosition(success, error, options);
-  </script>
-
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="">
+    </script>
   <style>
     #map {
       /* position: absolute; */
@@ -53,8 +33,6 @@
 </head>
 
 <body>
-  <section id="map">Loading ...</section>
-  <section id="app">Loading ...</section>
 </body>
 
 </html>
