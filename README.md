@@ -23,7 +23,6 @@ cargo install --locked trunk
 cargo install wasm-bindgen-cli
 cargo add web-sys
 cargo add log
-cargo add seed
 ```
 
 To deploy this project
@@ -60,7 +59,50 @@ wasm-pack test --headless --firefox
 
 ## Acknowledgements
 
-TBD
+- I learnt so much from him through his [blog](https://blogg.bekk.no/building-an-openstreetmap-app-in-rust-part-i-2adf72c75229)
+
+## Key resources
+
+[Osmium Tool Manual - osmcode](https://osmcode.org/osmium-tool/manual.html)
+
+Very useful OSM export resource - [HOT Export Tool](https://export.hotosm.org/en/v3/exports/new/describe)
+
+Export by countries cities
+
+- [Geofabrik Download Server](http://download.geofabrik.de/europe/great-britain.html)
+- [OpenStreetMap](https://www.openstreetmap.org/)
+
+Sketch GPX file - [gpx.studio — the online GPX file editor](https://gpx.studio/)
+
+Script-like tools to fetch OSM - [overpass turbo](https://overpass-turbo.eu/#)
+
+[Rust for beginners: GPX Analyzer - how to find the best GPS tracks in apps like Strava or Nike Run Club](https://nixsanctuary.com/rust-for-beginners-gpx-analyzer-how-to-find-the-best-gps-tracks-in-apps-like-strava-or-nike-run-club/)
+
+## Managing OSM files
+
+### Brew install `osmium` tool to manage OSM files
+
+```bash
+brew install osmium-tool
+```
+
+Examples:
+
+```bash
+osmium fileinfo Cambridgeshire_UK.osm.pbf
+osmium fileinfo -e Cambridgeshire_UK.osm.pbf
+osmium show Cambridgeshire_UK.osm.pbf
+osmium cat Cambridgeshire_UK.osm.pbf -o Cambridgeshire_UK.osm
+osmium cat ukmap.osm -o ukmap.osm.pbf
+```
+
+Concatenate to stdout for other programs
+
+```bash
+osmium cat Cambridgeshire_UK.osm.pbf -f osm | cargo +nightly run
+```
+
+where `-f` specified the output format
 
 ## License
 

@@ -8,7 +8,7 @@ description = "Offline Turn-based Navigation for trail and cycling routes"
 license = "MIT"
 repository = "https://github.com/anguschiu1/wasmybikeroute.git"
 keywords = ["yew", "trunk"]
-categories = ["gui", "wasm", "web-programming", "navigation"]
+categories = ["gui", "wasm", "SPA", "navigation"]
 
 [dependencies]
 yew = { version = "0.21.0", features = ["csr"] }
