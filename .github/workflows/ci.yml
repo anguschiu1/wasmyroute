@@ -1,4 +1,4 @@
-name: Rust
+name: Build and Deploy
 
 on:
   push:
@@ -48,14 +48,22 @@ jobs:
       # - name: Run another action
       #   uses: ./.github/workflows/static.yml
 
-      # Single deploy job since we're just deploying
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      # - name: Setup Pages
+      #   uses: actions/configure-pages@v5
+      # - name: Upload artifact
+      #   uses: actions/upload-pages-artifact@v3
+      #   with:
+      #     # Upload entire repository
+      #     path: "./dist"
+      # - name: Deploy to GitHub Pages
+      #   id: deployment
+      #   uses: actions/deploy-pages@v4
+
+      # deploy for github.io
+      - name: GitHub Pages action
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          # Upload entire repository
-          path: "./dist"
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: dist
+          # cname: abex.dev
