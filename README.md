@@ -2,7 +2,7 @@
 
 [![Build and Deploy](https://github.com/anguschiu1/wasmyroute/actions/workflows/ci.yml/badge.svg)]()
 
-![Wasmyroute](https://repository-images.githubusercontent.com/722200954/c6cc64a5-a7e4-44e4-ae67-0e078044c653)
+![WasMyRoute](https://repository-images.githubusercontent.com/722200954/c6cc64a5-a7e4-44e4-ae67-0e078044c653)
 
 WasMyRoute is a web application that allows users to create, navigate and record their favorite trail routes and cycling routes. The application is designed to operate on web browsers and once it is loaded, can still be used to track and navigate without internet connection. The application can import tracks and export routes in GPX format.
 
