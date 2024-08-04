@@ -25,9 +25,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo test --all
+
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: cargo clippy --all -- -D warnings
+
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +56,8 @@ jobs:
       - name: Install Trunk
         run: cargo install trunk
       - name: Build and Deploy
-        run: trunk build --public-url ${{ github.event.repository.name }} --release
+        # run: trunk build --public-url ${{ github.event.repository.name }} --release
+        run: trunk build --public-url ./ --release
       - name: GitHub Pages action
         uses: peaceiris/actions-gh-pages@v4
         with:
