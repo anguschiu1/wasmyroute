@@ -28,19 +28,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: cargo test --all
 
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: cargo fmt --all -- --check
 
   clippy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: cargo clippy --all -- -D warnings
 
   build:
@@ -56,7 +56,6 @@ jobs:
       - name: Install Trunk
         run: cargo install trunk
       - name: Build and Deploy
-        # run: trunk build --public-url ${{ github.event.repository.name }} --release
         run: trunk build --public-url ./ --release
       - name: GitHub Pages action
         uses: peaceiris/actions-gh-pages@v4
